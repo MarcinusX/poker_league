@@ -1,9 +1,16 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/reducers/main_reducer.dart';
 import 'package:poker_league/logic/redux_state.dart';
-import 'package:poker_league/widgets/main_page.dart';
+import 'package:poker_league/widgets/login/login_page.dart';
+import 'package:poker_league/widgets/main/main_page.dart';
 import 'package:redux/redux.dart';
+
+import 'logic/middleware.dart';
 
 void main() {
   runApp(new MyApp());
@@ -12,17 +19,18 @@ void main() {
 class MyApp extends StatelessWidget {
   final Store store = new Store(
     reduce,
-    initialState: new ReduxState(
-      mainPageState: new MainPageState(
-        selectedIndex: 0,
-      ),
-      players: [],
-      sessions: [],
-    ),
+    initialState: new ReduxState(),
+    middleware: [middleware].toList(),
   );
 
   @override
   Widget build(BuildContext context) {
+    LoginPage loginPage = new LoginPage();
+    store.dispatch(new InitAction(
+      firebaseDatabase: FirebaseDatabase.instance,
+      firebaseAuth: FirebaseAuth.instance,
+      googleSignIn: new GoogleSignIn(),
+    ));
     return new StoreProvider(
       store: store,
       child: new MaterialApp(
@@ -30,7 +38,11 @@ class MyApp extends StatelessWidget {
         theme: new ThemeData(
           primarySwatch: Colors.deepPurple,
         ),
-        home: new MainPage(),
+        routes: {
+          "Login": (context) => loginPage,
+          "Main": (context) => new MainPage(),
+        },
+        home: loginPage,
       ),
     );
   }

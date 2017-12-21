@@ -1,10 +1,31 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
 
-class ChangePageIndex {
-  final int index;
+class InitAction {
+  final FirebaseDatabase firebaseDatabase;
+  final FirebaseAuth firebaseAuth;
+  final GoogleSignIn googleSignIn;
 
-  ChangePageIndex(this.index);
+  InitAction({this.firebaseDatabase, this.firebaseAuth, this.googleSignIn});
+}
+
+class DoLogIn {
+}
+
+class OnLoggedInSuccessful {
+  final FirebaseUser firebaseUser;
+
+  OnLoggedInSuccessful(this.firebaseUser);
+}
+
+class ChangeMainPage {
+  final MainPageState mainPageState;
+
+  ChangeMainPage(this.mainPageState);
 }
 
 class AddPlayerToLeague {

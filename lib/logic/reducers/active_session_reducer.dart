@@ -2,7 +2,7 @@ import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/session.dart';
 
-Session reduceActiveSession(ReduxState state, action) {
+Session reduce(ReduxState state, action) {
   Session newSession = state.activeSession;
   if (action is ChooseSession) {
     newSession = action.session;

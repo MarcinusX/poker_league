@@ -6,7 +6,7 @@ import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:poker_league/widgets/league_player_item.dart';
-import 'package:poker_league/widgets/main_page.dart';
+import 'package:poker_league/widgets/main/main_page.dart';
 
 class ViewModel {
   final List<Player> players;

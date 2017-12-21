@@ -2,7 +2,7 @@ import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/player.dart';
 
-List<Player> reducePlayers(ReduxState state, action) {
+List<Player> reduce(ReduxState state, action) {
   List<Player> players = new List<Player>.from(state.players);
   if (action is AddPlayerToLeague) {
     players.add(action.player);
