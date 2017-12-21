@@ -9,6 +9,17 @@ middleware(Store<ReduxState> store, action, NextDispatcher next) {
     _logIn(store);
   }
   next(action);
+  if (action is InitAction) {
+    _tryLogInInBackground(store);
+  }
+}
+
+_tryLogInInBackground(Store<ReduxState> store) async {
+  FirebaseUser user = await store.state.firebaseState.firebaseAuth
+      .currentUser();
+  if (user != null) {
+    store.dispatch(new OnLoggedInSuccessful(user));
+  }
 }
 
 _logIn(Store<ReduxState> store) async {
