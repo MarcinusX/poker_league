@@ -22,6 +22,12 @@ class OnLoggedInSuccessful {
   OnLoggedInSuccessful(this.firebaseUser);
 }
 
+class LeagueAddedToUserAction {
+  final Event event;
+
+  LeagueAddedToUserAction(this.event);
+}
+
 class ChangeMainPage {
   final MainPageState mainPageState;
 

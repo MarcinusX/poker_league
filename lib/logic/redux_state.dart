@@ -14,13 +14,15 @@ class ReduxState {
   final List<Session> sessions;
   final Session activeSession;
   final League activeLeague;
+  final List<String> availableLeagues;
 
   ReduxState({this.mainPageState = MainPageState.HOME,
     this.firebaseState = const FirebaseState(),
     this.players = const [],
     this.sessions = const [],
     this.activeSession,
-    this.activeLeague});
+    this.activeLeague,
+    this.availableLeagues = const []});
 }
 
 class FirebaseState {

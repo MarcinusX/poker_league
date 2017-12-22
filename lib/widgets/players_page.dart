@@ -33,7 +33,7 @@ class PlayersPage extends StatelessWidget implements FabActionProvider {
             openNewPlayerDialog: (context) {
               _openNewPlayerDialog(context).then((String name) {
                 if (name != null) {
-                  Player player = new Player(name);
+                  Player player = new Player(name: name);
                   store.dispatch(new AddPlayerToLeague(player));
                 }
               });

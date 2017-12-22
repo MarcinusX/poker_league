@@ -7,11 +7,11 @@ List<Player> reduce(ReduxState state, action) {
   if (action is AddPlayerToLeague) {
     players.add(action.player);
   } else if (action is DoBuyIn) {
-    players.singleWhere((player) => player == action.player).leagueBalance -=
-        action.buyIn.value;
+    //players.singleWhere((player) => player == action.player).leagueBalance -=
+    //    action.buyIn.value;
   } else if (action is DoCheckout) {
-    players.singleWhere((player) => player == action.player).leagueBalance +=
-        action.checkout.total;
+    //players.singleWhere((player) => player == action.player).leagueBalance +=
+    //    action.checkout.total;
   }
   return players;
 }

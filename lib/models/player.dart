@@ -1,7 +1,8 @@
 class Player {
   String id;
   String name;
-  int leagueBalance;
+  List<String> leagueIds = [];
 
-  Player(this.name) : leagueBalance = 0;
+  Player({this.id, this.name});
+
 }

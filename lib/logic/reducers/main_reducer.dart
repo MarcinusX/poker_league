@@ -7,6 +7,7 @@ import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
 
 import 'firebase_reducer.dart' as firebase_reducer;
+import 'leagues_reducer.dart' as leagues_reducer;
 
 ReduxState reduce(ReduxState state, action) {
   MainPageState mainPageState = main_page_reducer.reduce(state, action);
@@ -14,12 +15,14 @@ ReduxState reduce(ReduxState state, action) {
   List<Session> sessions = sessions_reducer.reduce(state, action);
   Session activeSession = session_reducer.reduce(state, action);
   FirebaseState firebaseState = firebase_reducer.reduce(state, action);
+  List<String> availableLeagues = leagues_reducer.reduce(state, action);
 
   return new ReduxState(
     mainPageState: mainPageState,
     players: players,
     sessions: sessions,
     activeSession: activeSession,
-      firebaseState: firebaseState
+    firebaseState: firebaseState,
+    availableLeagues: availableLeagues,
   );
 }
