@@ -14,7 +14,8 @@ class LeagueDialog extends StatelessWidget {
           new FlatButton(
             onPressed: () => Navigator.of(context).pop(
                 new League(_nameController.text, _passwordController.text)),
-            child: new Text("CREATE"),
+            child: new Text(
+              "CREATE", style: new TextStyle(color: Colors.white),),
           ),
         ],
       ),

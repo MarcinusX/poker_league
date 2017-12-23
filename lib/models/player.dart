@@ -1,8 +1,20 @@
 class Player {
-  String id;
+  String key;
+  String uid;
   String name;
-  List<String> leagueIds = [];
 
-  Player({this.id, this.name});
+  Player({this.uid, this.name});
 
+  Player.fromFirebaseDynamic(dynamic firebase)
+      : key = firebase["key"],
+        uid = firebase["uid"],
+        name = firebase["name"];
+
+  dynamic toJson() {
+    return {
+      "key": key,
+      "uid": uid,
+      "name": name,
+    };
+  }
 }

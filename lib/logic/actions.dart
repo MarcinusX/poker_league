@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:poker_league/logic/redux_state.dart';
+import 'package:poker_league/models/league.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
 
@@ -11,6 +12,33 @@ class InitAction {
   final GoogleSignIn googleSignIn;
 
   InitAction({this.firebaseDatabase, this.firebaseAuth, this.googleSignIn});
+}
+
+class SetActiveLeagueAction {
+  final String leagueName;
+
+  SetActiveLeagueAction(this.leagueName);
+}
+
+class LoadActiveLeagueNameFromSP {
+}
+
+class OnActiveLeagueNameProvided {
+  final String leagueName;
+
+  OnActiveLeagueNameProvided(this.leagueName);
+}
+
+class OnActiveLeagueUpdated {
+  final Event event;
+
+  OnActiveLeagueUpdated(this.event);
+}
+
+class CreateLeagueAction {
+  final League league;
+
+  CreateLeagueAction(this.league);
 }
 
 class DoLogIn {

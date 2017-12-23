@@ -3,6 +3,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/widgets/home/home_page.dart';
+import 'package:poker_league/widgets/leagues/leagues_page.dart';
 import 'package:poker_league/widgets/main/drawer.dart';
 import 'package:poker_league/widgets/players_page.dart';
 import 'package:poker_league/widgets/sessions_list_page.dart';
@@ -18,6 +19,7 @@ final Map<MainPageState, FabActionProvider> pages = {
   MainPageState.HOME: new HomePage(),
   MainPageState.SESSIONS: new SessionsListPage(),
   MainPageState.PLAYERS: new PlayersPage(),
+  MainPageState.LEAGUES: new LeaguesPage(),
 };
 
 class MainPage extends StatelessWidget {
@@ -26,6 +28,8 @@ class MainPage extends StatelessWidget {
       return "Sessions";
     } else if (page == MainPageState.PLAYERS) {
       return "Players";
+    } else if (page == MainPageState.LEAGUES) {
+      return "Leagues";
     } else {
       return "Poker League";
     }
@@ -69,6 +73,10 @@ class MainPage extends StatelessWidget {
             new Offstage(
               offstage: viewModel.mainPageState != MainPageState.PLAYERS,
               child: pages[MainPageState.PLAYERS],
+            ),
+            new Offstage(
+              offstage: viewModel.mainPageState != MainPageState.LEAGUES,
+              child: pages[MainPageState.LEAGUES],
             ),
           ],
         ),
