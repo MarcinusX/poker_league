@@ -14,7 +14,7 @@ class LeaguePlayerItem extends StatelessWidget {
         style: Theme.of(context).textTheme.headline,
       ),
       trailing: new Text(
-        "temp", //player.leagueBalance.toString(),
+        player.leagueBalance.toString(),
         style: Theme.of(context).textTheme.subhead,
       ),
     );

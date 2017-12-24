@@ -15,13 +15,15 @@ class League {
   League.fromSnapshot(DataSnapshot snapshot)
       : name = snapshot.value["name"],
         password = snapshot.value["password"],
-        players = snapshot.value["players"].keys
-            .map(
+        players = snapshot.value["players"]?.keys
+            ?.map(
               (key) =>
-          new Player.fromFirebaseDynamic(snapshot.value["players"][key])
+          new Player.fromFirebaseDynamic(
+              snapshot.value["players"][key])
             ..key = key,
         )
-            .toList() {
+            ?.toList() ??
+            [] {
     print(players);
   }
 

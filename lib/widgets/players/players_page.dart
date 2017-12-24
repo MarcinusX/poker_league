@@ -29,7 +29,7 @@ class PlayersPage extends StatelessWidget implements FabActionProvider {
     return new StoreConnector<ReduxState, ViewModel>(
       converter: (store) {
         return new ViewModel(
-            players: store.state.activeLeague.players,
+            players: store.state.activeLeague?.players ?? [],
             openNewPlayerDialog: (context) {
               _openNewPlayerDialog(context).then((String name) {
                 if (name != null) {

@@ -6,6 +6,8 @@ import 'package:poker_league/models/league.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
 
+// ===== INIT ======
+
 class InitAction {
   final FirebaseDatabase firebaseDatabase;
   final FirebaseAuth firebaseAuth;
@@ -14,32 +16,15 @@ class InitAction {
   InitAction({this.firebaseDatabase, this.firebaseAuth, this.googleSignIn});
 }
 
-class SetActiveLeagueAction {
-  final String leagueName;
+// ===== NAVIGATION =====
 
-  SetActiveLeagueAction(this.leagueName);
+class ChangeMainPage {
+  final MainPageState mainPageState;
+
+  ChangeMainPage(this.mainPageState);
 }
 
-class LoadActiveLeagueNameFromSP {
-}
-
-class OnActiveLeagueNameProvided {
-  final String leagueName;
-
-  OnActiveLeagueNameProvided(this.leagueName);
-}
-
-class OnActiveLeagueUpdated {
-  final Event event;
-
-  OnActiveLeagueUpdated(this.event);
-}
-
-class CreateLeagueAction {
-  final League league;
-
-  CreateLeagueAction(this.league);
-}
+// ===== USER ======
 
 class DoLogIn {
 }
@@ -56,10 +41,35 @@ class LeagueAddedToUserAction {
   LeagueAddedToUserAction(this.event);
 }
 
-class ChangeMainPage {
-  final MainPageState mainPageState;
+// ===== ACTIVE LEAGUE NAME =====
 
-  ChangeMainPage(this.mainPageState);
+class SetActiveLeagueAction {
+  final String leagueName;
+
+  SetActiveLeagueAction(this.leagueName);
+}
+
+class LoadActiveLeagueNameFromSP {
+}
+
+class OnActiveLeagueNameProvided {
+  final String leagueName;
+
+  OnActiveLeagueNameProvided(this.leagueName);
+}
+
+// ===== ACTIVE LEAGUE =====
+
+class OnActiveLeagueUpdated {
+  final Event event;
+
+  OnActiveLeagueUpdated(this.event);
+}
+
+class CreateLeagueAction {
+  final League league;
+
+  CreateLeagueAction(this.league);
 }
 
 class AddPlayerToLeague {
@@ -67,6 +77,8 @@ class AddPlayerToLeague {
 
   AddPlayerToLeague(this.player);
 }
+
+// ===== SESSION =====
 
 class AddSession {
   final Session session;

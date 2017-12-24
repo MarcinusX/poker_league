@@ -42,7 +42,8 @@ middleware(Store<ReduxState> store, action, NextDispatcher next) {
           .set(
         new Player(
           uid: store.state.firebaseState.user.uid,
-          name: store.state.firebaseState.user.uid,
+          name: store
+              .state.firebaseState.googleSignIn.currentUser.displayName,
         )
             .toJson(),
       );
@@ -61,19 +62,22 @@ middleware(Store<ReduxState> store, action, NextDispatcher next) {
   } else if (action is LoadActiveLeagueNameFromSP) {
     SharedPreferences.getInstance().then((prefs) {
       String activeLeagueName = prefs.getString("ActiveLeague");
-      store.dispatch(new OnActiveLeagueNameProvided(activeLeagueName));
+      if (activeLeagueName != null) {
+        store.dispatch(new OnActiveLeagueNameProvided(activeLeagueName));
+      }
     });
   } else if (action is OnActiveLeagueNameProvided) {
     String oldActiveLeagueName = store.state.activeLeague?.name;
-    DatabaseReference mainReference =
-    store.state.firebaseState.firebaseDatabase.reference();
+    DatabaseReference mainReference = store.state.mainReference;
     if (oldActiveLeagueName != null) {
+      //clear listener
       mainReference
           .child("leagues")
           .child(oldActiveLeagueName)
           .onValue
           .listen(null);
     }
+
     mainReference
         .child("leagues")
         .child(action.leagueName)
@@ -105,14 +109,14 @@ _tryLogInInBackground(Store<ReduxState> store) async {
 }
 
 _logIn(Store<ReduxState> store) async {
-  GoogleSignIn googleSignIn = new GoogleSignIn();
+  GoogleSignIn googleSignIn = store.state.firebaseState.googleSignIn;
   FirebaseAuth auth = store.state.firebaseState.firebaseAuth;
   GoogleSignInAccount currentUser = googleSignIn.currentUser;
   if (currentUser == null) {
     currentUser = await googleSignIn.signInSilently();
   }
   if (currentUser == null) {
-    await googleSignIn.signIn();
+    currentUser = await googleSignIn.signIn();
   }
   if (await auth.currentUser() == null) {
     GoogleSignInAuthentication credentials = await currentUser.authentication;
