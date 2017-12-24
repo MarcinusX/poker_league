@@ -3,7 +3,7 @@ class Player {
   String uid;
   String name;
 
-  Player({this.uid, this.name});
+  Player({this.key, this.uid, this.name});
 
   Player.fromFirebaseDynamic(dynamic firebase)
       : key = firebase["key"],

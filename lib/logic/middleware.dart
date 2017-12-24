@@ -81,10 +81,18 @@ middleware(Store<ReduxState> store, action, NextDispatcher next) {
         .listen((event) {
       store.dispatch(new OnActiveLeagueUpdated(event));
     });
+  } else if (action is AddPlayerToLeague) {
+    store.state.mainReference
+        .child("leagues")
+        .child(store.state.activeLeagueName)
+        .child("players")
+        .push()
+        .set(action.player.toJson());
   }
   next(action);
   if (action is InitAction) {
     _tryLogInInBackground(store);
+    store.dispatch(new LoadActiveLeagueNameFromSP());
   }
 }
 

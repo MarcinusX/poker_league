@@ -5,8 +5,8 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/player.dart';
-import 'package:poker_league/widgets/league_player_item.dart';
 import 'package:poker_league/widgets/main/main_page.dart';
+import 'package:poker_league/widgets/players/league_player_item.dart';
 
 class ViewModel {
   final List<Player> players;
@@ -29,7 +29,7 @@ class PlayersPage extends StatelessWidget implements FabActionProvider {
     return new StoreConnector<ReduxState, ViewModel>(
       converter: (store) {
         return new ViewModel(
-            players: store.state.players,
+            players: store.state.activeLeague.players,
             openNewPlayerDialog: (context) {
               _openNewPlayerDialog(context).then((String name) {
                 if (name != null) {

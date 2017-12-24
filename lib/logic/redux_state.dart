@@ -27,6 +27,9 @@ class ReduxState {
     this.availableLeagues = const [],
     this.activeLeagueName,
   });
+
+  DatabaseReference get mainReference =>
+      firebaseState.firebaseDatabase.reference();
 }
 
 class FirebaseState {
