@@ -32,9 +32,10 @@ class SessionsListPage extends StatelessWidget implements FabActionProvider {
     return new StoreConnector<ReduxState, ViewModel>(
       converter: (store) {
         return new ViewModel(
-          sessions: store.state.sessions,
+          sessions: store.state.activeLeague?.sessions?.values?.toList() ?? [],
           openNewSessionDialog: (context) {
-            _openNewSessionDialog(context, store.state.players)
+            _openNewSessionDialog(
+                context, store.state?.activeLeague?.players ?? [])
                 .then((Session session) {
               if (session != null) {
                 store.dispatch(new AddSession(session));

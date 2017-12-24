@@ -2,6 +2,32 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
 
+List<Player> parsePlayersToList(Map<String, dynamic> playersMap) {
+  return playersMap?.keys
+      ?.map((key) =>
+  new Player.fromFirebaseDynamic(playersMap[key])
+    ..key = key)
+      ?.toList() ??
+      [];
+}
+
+Map<String, Player> parsePlayersToMap(Map<String, dynamic> playersMap) {
+  return new Map.fromIterable(playersMap?.keys ?? [],
+      key: (key) => key,
+      value: (key) =>
+      new Player.fromFirebaseDynamic(playersMap[key])
+        ..key = key);
+}
+
+Map<String, Session> parseSessionsToMap(Map<String, dynamic> sessionsMap,
+    Map<String, Player> playersInLeague) {
+  return new Map.fromIterable(sessionsMap?.keys ?? [],
+      key: (key) => key,
+      value: (key) =>
+      new Session.fromJson(sessionsMap[key], playersInLeague)
+        ..key = key);
+}
+
 class League {
   List<Player> players;
   Map<String, Session> sessions;
@@ -15,17 +41,11 @@ class League {
   League.fromSnapshot(DataSnapshot snapshot)
       : name = snapshot.value["name"],
         password = snapshot.value["password"],
-        players = snapshot.value["players"]?.keys
-            ?.map(
-              (key) =>
-          new Player.fromFirebaseDynamic(
-              snapshot.value["players"][key])
-            ..key = key,
-        )
-            ?.toList() ??
-            [] {
-    print(players);
-  }
+        players = parsePlayersToList(snapshot.value["players"]),
+        sessions = parseSessionsToMap(
+          snapshot.value["sessions"],
+          parsePlayersToMap(snapshot.value["players"]),
+        );
 
   dynamic toJson() {
     return {

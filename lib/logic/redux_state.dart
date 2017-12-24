@@ -3,15 +3,12 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meta/meta.dart';
 import 'package:poker_league/models/league.dart';
-import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
 
 @immutable
 class ReduxState {
   final MainPageState mainPageState;
   final FirebaseState firebaseState;
-  final List<Player> players;
-  final List<Session> sessions;
   final Session activeSession;
   final League activeLeague;
   final String activeLeagueName;
@@ -20,8 +17,6 @@ class ReduxState {
   ReduxState({
     this.mainPageState = MainPageState.HOME,
     this.firebaseState = const FirebaseState(),
-    this.players = const [],
-    this.sessions = const [],
     this.activeSession,
     this.activeLeague,
     this.availableLeagues = const [],

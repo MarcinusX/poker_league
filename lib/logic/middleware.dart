@@ -92,6 +92,13 @@ middleware(Store<ReduxState> store, action, NextDispatcher next) {
         .child("players")
         .push()
         .set(action.player.toJson());
+  } else if (action is AddSession) {
+    store.state.mainReference
+        .child("leagues")
+        .child(store.state.activeLeagueName)
+        .child("sessions")
+        .push()
+        .set(action.session.toJson());
   }
   next(action);
   if (action is InitAction) {
