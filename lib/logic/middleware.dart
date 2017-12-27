@@ -99,6 +99,25 @@ middleware(Store<ReduxState> store, action, NextDispatcher next) {
         .child("sessions")
         .push()
         .set(action.session.toJson());
+  } else if (action is DoBuyIn) {
+    store.state.mainReference
+        .child("leagues")
+        .child(store.state.activeLeagueName)
+        .child("sessions")
+        .child(store.state.activeSession.key)
+        .child("playerSessions")
+        .child(action.player.key)
+        .child("buyIns")
+        .push().set(action.buyIn.toJson());
+  } else if (action is DoCheckout) {
+    store.state.mainReference
+        .child("leagues")
+        .child(store.state.activeLeagueName)
+        .child("sessions")
+        .child(store.state.activeSession.key)
+        .child("playerSessions")
+        .child(action.player.key)
+        .child("checkout").set(action.checkout.toJson());
   }
   next(action);
   if (action is InitAction) {

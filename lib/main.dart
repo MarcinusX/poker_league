@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:poker_league/logic/actions.dart';
-import 'package:poker_league/logic/reducers/main_reducer.dart';
+import 'package:poker_league/logic/main_reducer.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/widgets/login/login_page.dart';
 import 'package:poker_league/widgets/main/main_page.dart';

@@ -23,6 +23,24 @@ class ReduxState {
     this.activeLeagueName,
   });
 
+  ReduxState copyWith({
+    MainPageState mainPageState,
+    FirebaseState firebaseState,
+    Session activeSession,
+    League activeLeague,
+    List<String> availableLeagues,
+    String activeLeagueName,
+  }) {
+    return new ReduxState(
+      mainPageState: mainPageState ?? this.mainPageState,
+      firebaseState: firebaseState ?? this.firebaseState,
+      activeSession: activeSession ?? this.activeSession,
+      activeLeague: activeLeague ?? this.activeLeague,
+      availableLeagues: availableLeagues ?? this.availableLeagues,
+      activeLeagueName: activeLeagueName ?? this.activeLeagueName,
+    );
+  }
+
   DatabaseReference get mainReference =>
       firebaseState.firebaseDatabase.reference();
 }

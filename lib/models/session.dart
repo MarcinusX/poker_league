@@ -117,7 +117,7 @@ class PlayerSession {
               (String key) =>
           new BuyIn.fromJson(map["buyIns"][key])
             ..key = key,
-        ) ??
+        )?.toList() ??
             [],
         checkout = map["checkout"] == null
             ? null
