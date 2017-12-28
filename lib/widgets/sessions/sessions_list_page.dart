@@ -7,9 +7,9 @@ import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
 import 'package:poker_league/widgets/main/main_page.dart';
-import 'package:poker_league/widgets/new_session_dialog.dart';
-import 'package:poker_league/widgets/session_item.dart';
-import 'package:poker_league/widgets/session_page.dart';
+import 'package:poker_league/widgets/sessions/new_session_dialog.dart';
+import 'package:poker_league/widgets/sessions/session/session_page.dart';
+import 'package:poker_league/widgets/sessions/session_item.dart';
 
 class ViewModel {
   final List<Session> sessions;

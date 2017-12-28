@@ -6,7 +6,7 @@ import 'package:poker_league/widgets/home/home_page.dart';
 import 'package:poker_league/widgets/leagues/leagues_page.dart';
 import 'package:poker_league/widgets/main/drawer.dart';
 import 'package:poker_league/widgets/players/players_page.dart';
-import 'package:poker_league/widgets/sessions_list_page.dart';
+import 'package:poker_league/widgets/sessions/sessions_list_page.dart';
 
 class ViewModel {
   final MainPageState mainPageState;

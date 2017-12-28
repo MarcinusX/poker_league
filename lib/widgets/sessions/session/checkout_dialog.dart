@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
+import 'package:poker_league/widgets/sessions/session/numeric_slider.dart';
 
 class CheckoutDialog extends StatefulWidget {
   final Player player;
@@ -9,10 +12,10 @@ class CheckoutDialog extends StatefulWidget {
 
   CheckoutDialog(this.player, this.session)
       : playerDebts = new Map<Player, int>.fromIterable(
-          session.playerSessions.values.where((ps) => ps.debtBuyIn != 0),
-          key: (PlayerSession ps) => ps.player,
-          value: (PlayerSession ps) => ps.debtBuyIn,
-        );
+    session.playerSessions.values.where((ps) => ps.debtBuyIn != 0),
+    key: (PlayerSession ps) => ps.player,
+    value: (PlayerSession ps) => ps.debtBuyIn,
+  );
 
   @override
   State<StatefulWidget> createState() {
@@ -25,12 +28,13 @@ class CheckoutDialogState extends State<CheckoutDialog> {
   int _cashCheckout = 0;
   int _totalCheckout = 0;
 
-  int get leftResources =>
-      _totalCheckout -
-      _cashCheckout -
-      (_checkoutsFromDebts.isEmpty
-          ? 0
-          : _checkoutsFromDebts.values.reduce((a, b) => a + b));
+  int get _moneyDeclaredToCheckout =>
+      _cashCheckout +
+          (_checkoutsFromDebts.isEmpty
+              ? 0
+              : _checkoutsFromDebts.values.reduce((a, b) => a + b));
+
+  int get _leftResources => _totalCheckout - _moneyDeclaredToCheckout;
 
   @override
   void initState() {
@@ -49,11 +53,14 @@ class CheckoutDialogState extends State<CheckoutDialog> {
         title: new Text("Checkout: " + widget.player.name),
         actions: [
           new FlatButton(
-            onPressed: () => Navigator.of(context).pop(
+            onPressed: (_leftResources == 0
+                ? () =>
+                Navigator.of(context).pop(
                   new Checkout(
                       cashValue: _cashCheckout,
                       debtValues: _checkoutsFromDebts),
-                ),
+                )
+                : null),
             child: new Text("CONFIRM",
                 style: Theme
                     .of(context)
@@ -68,34 +75,50 @@ class CheckoutDialogState extends State<CheckoutDialog> {
           padding: new EdgeInsets.symmetric(horizontal: 16.0),
           child: new Column(
             children: <Widget>[
-              new TextField(
-                decoration: new InputDecoration(labelText: "Total outcome"),
-                keyboardType: TextInputType.number,
-                onChanged: (value) =>
-                    setState(() => _totalCheckout = int.parse(value)),
+              new Text("Total checkout"),
+              new NumericSlider(
+                valueChanged: (newValue) =>
+                    setState(() => _totalCheckout = newValue),
+                minValue: _moneyDeclaredToCheckout,
+                maxValue: widget.session.total,
               ),
+              new Divider(),
               (_totalCheckout == 0
                   ? new Container()
-                  : new TextField(
-                      decoration: new InputDecoration(labelText: "Cash"),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) => setState(() =>
-                          _cashCheckout = value.isEmpty ? 0 : int.parse(value)),
-                    )),
+                  : new Column(
+                children: [
+                  new Text("Cash"),
+                  new NumericSlider(
+                    valueChanged: (newValue) =>
+                        setState(() => _cashCheckout = newValue),
+                    minValue: 0,
+                    maxValue: _leftResources,
+                  ),
+                ],
+              )),
               new ListView.builder(
                   shrinkWrap: true,
                   itemExtent: 80.0,
                   itemCount:
-                      (_totalCheckout == 0 ? 0 : widget.playerDebts.length),
+                  (_totalCheckout == 0 ? 0 : widget.playerDebts.length),
                   itemBuilder: (BuildContext context, int index) {
                     Player player = widget.playerDebts.keys.toList()[index];
-                    return new TextField(
-                      decoration: new InputDecoration(
-                          labelText: "Debt from " + player.name),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) => setState(() =>
-                          _checkoutsFromDebts[player] =
-                              value.isEmpty ? 0 : int.parse(value)),
+                    int debt = widget.playerDebts[player];
+
+                    return new Column(
+                      children: [
+                        new Text("Debt from " + player.name),
+                        new NumericSlider(
+                          valueChanged: (newValue) =>
+                              setState(
+                                      () =>
+                                  _checkoutsFromDebts[player] = newValue),
+                          minValue: player == widget.player
+                              ? math.min(_leftResources, debt)
+                              : 0,
+                          maxValue: math.min(_leftResources, debt),
+                        ),
+                      ],
                     );
                   }),
             ],

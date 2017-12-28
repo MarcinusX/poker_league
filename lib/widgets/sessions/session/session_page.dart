@@ -7,7 +7,7 @@ import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
-import 'package:poker_league/widgets/checkout_dialog.dart';
+import 'package:poker_league/widgets/sessions/session/checkout_dialog.dart';
 
 class ViewModel {
   final Session session;
