@@ -6,6 +6,7 @@ import 'package:poker_league/models/session.dart';
 import 'package:poker_league/widgets/sessions/session/numeric_slider.dart';
 
 class CheckoutDialog extends StatefulWidget {
+  final ChangeNotifier changeNotifier = new ChangeNotifier();
   final Player player;
   final Session session;
   final Map<Player, int> playerDebts;
@@ -77,8 +78,13 @@ class CheckoutDialogState extends State<CheckoutDialog> {
             children: <Widget>[
               new Text("Total checkout"),
               new NumericSlider(
+                numer: 111,
                 valueChanged: (newValue) =>
-                    setState(() => _totalCheckout = newValue),
+                    setState(() {
+                      _totalCheckout = newValue;
+                      widget.changeNotifier.notifyListeners();
+                    }),
+                rangeNotifier: widget.changeNotifier,
                 minValue: _moneyDeclaredToCheckout,
                 maxValue: widget.session.total,
               ),
@@ -89,8 +95,10 @@ class CheckoutDialogState extends State<CheckoutDialog> {
                 children: [
                   new Text("Cash"),
                   new NumericSlider(
+                    numer: 11,
                     valueChanged: (newValue) =>
                         setState(() => _cashCheckout = newValue),
+                    rangeNotifier: widget.changeNotifier,
                     minValue: 0,
                     maxValue: _leftResources,
                   ),
@@ -98,7 +106,7 @@ class CheckoutDialogState extends State<CheckoutDialog> {
               )),
               new ListView.builder(
                   shrinkWrap: true,
-                  itemExtent: 80.0,
+                  itemExtent: 90.0,
                   itemCount:
                   (_totalCheckout == 0 ? 0 : widget.playerDebts.length),
                   itemBuilder: (BuildContext context, int index) {
@@ -109,10 +117,13 @@ class CheckoutDialogState extends State<CheckoutDialog> {
                       children: [
                         new Text("Debt from " + player.name),
                         new NumericSlider(
+                          numer: index,
                           valueChanged: (newValue) =>
                               setState(
                                       () =>
                                   _checkoutsFromDebts[player] = newValue),
+                          rangeNotifier: widget.changeNotifier,
+
                           minValue: player == widget.player
                               ? math.min(_leftResources, debt)
                               : 0,

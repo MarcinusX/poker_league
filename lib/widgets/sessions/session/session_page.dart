@@ -4,17 +4,20 @@ import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:poker_league/logic/actions.dart';
+import 'package:poker_league/logic/checkout_actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
-import 'package:poker_league/widgets/sessions/session/checkout_dialog.dart';
+import 'package:poker_league/widgets/sessions/session/checkout_page.dart';
 
 class ViewModel {
   final Session session;
   final Function(Player, BuyIn) doBuyIn;
   final Function(Player, Checkout) doCheckout;
+  final Function(Player) prepareCheckoutPage;
 
-  ViewModel({this.session, this.doBuyIn, this.doCheckout});
+  ViewModel(
+      {this.session, this.doBuyIn, this.doCheckout, this.prepareCheckoutPage});
 }
 
 class SessionPage extends StatelessWidget {
@@ -30,6 +33,9 @@ class SessionPage extends StatelessWidget {
               store.dispatch(new DoBuyIn(player, buyIn)),
           doCheckout: (player, checkout) =>
               store.dispatch(new DoCheckout(player, checkout)),
+            prepareCheckoutPage: (player) =>
+                store.dispatch(
+                    new InitCheckout(player, store.state.activeSession))
         );
       },
       builder: (context, viewModel) {
@@ -143,13 +149,11 @@ class SessionPage extends StatelessWidget {
                           onPressed: (hasCheckedOut
                               ? null
                               : (() {
-                                  showDialog<Checkout>(
-                                    context: context,
-                                    child: new CheckoutDialog(
-                                      playerSession.player,
-                                      viewModel.session,
-                                    ),
-                                  ).then((Checkout checkout) {
+                            viewModel.prepareCheckoutPage(playerSession.player);
+                            Navigator.of(context).push(
+                                new MaterialPageRoute(builder: (context) {
+                                  return new CheckoutPage();
+                                })).then((Checkout checkout) {
                                     if (checkout != null) {
                                       viewModel.doCheckout(
                                           playerSession.player, checkout);
