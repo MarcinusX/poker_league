@@ -80,7 +80,7 @@ class Checkout {
       : key = map["key"],
         cashValue = map["cashValue"],
         debtValues = new Map.fromIterable(
-          map["debtValues"].keys,
+          map["debtValues"]?.keys ?? [],
           key: (id) => players[id],
           value: (id) => map["debtValues"][id],
         );

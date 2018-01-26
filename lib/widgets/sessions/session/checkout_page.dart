@@ -66,7 +66,7 @@ class CheckoutPage extends StatelessWidget {
           ),
           body: new SingleChildScrollView(
             child: new Padding(
-              padding: new EdgeInsets.symmetric(horizontal: 16.0),
+              padding: new EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 0.0),
               child: new Column(
                 children: <Widget>[
                   new Text("Total checkout"),
@@ -92,11 +92,11 @@ class CheckoutPage extends StatelessWidget {
                               maxValue:
                                   vm.checkoutState.cashCheckoutSlider.maxValue,
                             ),
+                            new Divider(),
                           ],
                         )),
                   new ListView.builder(
                       shrinkWrap: true,
-                      itemExtent: 90.0,
                       itemCount:
                           (vm.checkoutState.totalCheckoutSlider.value == 0
                               ? 0

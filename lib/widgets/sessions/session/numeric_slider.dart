@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 class NumericSlider extends StatelessWidget {
@@ -5,18 +7,15 @@ class NumericSlider extends StatelessWidget {
   final int maxValue;
   final int value;
   final ValueChanged<int> valueChanged;
-  TextEditingController _textController;
 
-  NumericSlider({this.minValue, this.maxValue, this.value, this.valueChanged}) {
-    _textController = new TextEditingController(text: value.toInt().toString());
-  }
+  NumericSlider({this.minValue, this.maxValue, this.value, this.valueChanged});
 
   @override
   Widget build(BuildContext context) {
     return new Row(
       children: <Widget>[
         new Expanded(
-          flex: 7,
+          flex: 3,
           child: new Slider(
             min: minValue.toDouble(),
             max: maxValue.toDouble(),
@@ -26,32 +25,54 @@ class NumericSlider extends StatelessWidget {
           ),
         ),
         new Expanded(
-          flex: 1,
-          child: new TextField(
-            keyboardType: TextInputType.number,
-            controller: _textController,
-            onChanged: (string) {
-//              double newValue = double.parse(string);
-//              print("String $string newValue $newValue");
-//              if (newValue < widget.minValue || newValue == null) {
-//                newValue = widget.minValue.toDouble();
-//                _textController = new TextEditingController(
-//                    text: newValue.toInt().toString());
-//              } else if (newValue > widget.maxValue) {
-//                newValue = widget.maxValue.toDouble();
-//                _textController = new TextEditingController(
-//                    text: newValue.toInt().toString());
-//              }
-//              _value = newValue;
-            },
-            maxLength: 4,
-          ),
-        ),
+            flex: 1,
+            child: new Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                new Text(value.toString()),
+                new IconButton(
+                    icon: new Icon(Icons.edit),
+                    onPressed: () {
+                      TextEditingController _controller =
+                      new TextEditingController(text: value.toString());
+                      showDialog(
+                          context: context,
+                          child: new AlertDialog(
+                            content: new TextField(
+                              controller: _controller,
+                              decoration: new InputDecoration(
+                                labelText: "Checkout value",
+                                counterText: "",
+                              ),
+                              keyboardType: TextInputType.number,
+                              maxLength: 4,
+                            ),
+                            actions: [
+                              new FlatButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: new Text("CANCEL"),
+                              ),
+                              new FlatButton(
+                                onPressed: () =>
+                                    Navigator
+                                        .of(context)
+                                        .pop(int.parse(_controller.text)),
+                                child: new Text("OK"),
+                              ),
+                            ],
+                          )).then((int newValue) {
+                        if (newValue != null) {
+                          newValue = math.min(maxValue, newValue);
+                          newValue = math.max(minValue, newValue);
+                          valueChanged(newValue);
+                        }
+                      });
+                    })
+              ],
+            )),
       ],
       crossAxisAlignment: CrossAxisAlignment.center,
     );
   }
 }
-
-//_textController = new TextEditingController(
-//text: _value.toInt().toString());
