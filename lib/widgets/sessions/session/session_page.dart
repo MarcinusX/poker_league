@@ -9,6 +9,7 @@ import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
 import 'package:poker_league/widgets/sessions/session/checkout_page.dart';
+import 'package:poker_league/widgets/sessions/session/edit_session_page.dart';
 
 class ViewModel {
   final Session session;
@@ -28,15 +29,15 @@ class SessionPage extends StatelessWidget {
     return new StoreConnector<ReduxState, ViewModel>(
       converter: (store) {
         return new ViewModel(
-          session: store.state.activeSession,
-          doBuyIn: (player, buyIn) =>
-              store.dispatch(new DoBuyIn(player, buyIn)),
-          doCheckout: (player, checkout) =>
-              store.dispatch(new DoCheckout(player, checkout)),
+            session: store.state.activeSession,
+            doBuyIn: (player, buyIn) =>
+                store.dispatch(new DoBuyIn(player, buyIn)),
+            doCheckout: (player, checkout) =>
+                store.dispatch(new DoCheckout(player, checkout)),
             prepareCheckoutPage: (player) =>
-                store.dispatch(
-                    new InitCheckout(player, store.state.activeSession))
-        );
+                store
+                    .dispatch(
+                    new InitCheckout(player, store.state.activeSession)));
       },
       builder: (context, viewModel) {
         return new Scaffold(
@@ -45,6 +46,17 @@ class SessionPage extends StatelessWidget {
               new SliverAppBar(
                 expandedHeight: _appBarHeight,
                 pinned: true,
+                actions: [
+                  new IconButton(
+                    icon: new Icon(Icons.settings),
+                    onPressed: () {
+                      Navigator.of(context).push(new MaterialPageRoute(
+                        builder: (
+                            BuildContext context) => new EditSessionPage(),
+                      ));
+                    },
+                  )
+                ],
                 flexibleSpace: new FlexibleSpaceBar(
                   title:
                       new Text("Total: " + viewModel.session.total.toString()),
@@ -149,7 +161,8 @@ class SessionPage extends StatelessWidget {
                           onPressed: (hasCheckedOut
                               ? null
                               : (() {
-                            viewModel.prepareCheckoutPage(playerSession.player);
+                            viewModel.prepareCheckoutPage(
+                                playerSession.player);
                             Navigator.of(context).push(
                                 new MaterialPageRoute(builder: (context) {
                                   return new CheckoutPage();
@@ -174,6 +187,8 @@ class SessionPage extends StatelessWidget {
     );
   }
 }
+
+class EditSessionDialog {}
 
 class DiscreteSlider extends StatefulWidget {
   final ValueChanged<int> valueChanged;

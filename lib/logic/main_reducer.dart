@@ -9,7 +9,7 @@ import 'package:poker_league/models/session.dart';
 import 'checkout_actions.dart';
 
 ReduxState reduce(ReduxState state, action) {
-  ReduxState newState;
+  ReduxState newState = state;
   if (action is ChangeMainPage) {
     newState = state.copyWith(mainPageState: action.mainPageState);
   } else if (action is OnActiveLeagueUpdated) {
@@ -37,8 +37,6 @@ ReduxState reduce(ReduxState state, action) {
           availableLeagues: new List.from(state.availableLeagues)
             ..add(action.event.snapshot.key));
     }
-  } else {
-    newState = state;
   }
   newState =
       newState.copyWith(checkoutState: reduceCheckoutState(state, action));

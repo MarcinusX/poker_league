@@ -1,3 +1,5 @@
+import 'package:quiver_hashcode/hashcode.dart';
+
 class Player {
   String key;
   String uid;
@@ -20,4 +22,14 @@ class Player {
       "leagueBalance": leagueBalance,
     };
   }
+
+  @override
+  bool operator ==(other) =>
+      other is Player && key == other.key && uid == other.uid && name == other
+          .name && leagueBalance == other.leagueBalance;
+
+  @override
+  int get hashCode => hash4(key, uid, name, leagueBalance);
+
+
 }
