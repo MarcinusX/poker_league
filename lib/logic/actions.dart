@@ -105,3 +105,15 @@ class DoCheckout {
 
   DoCheckout(this.player, this.checkout);
 }
+
+class AddPlayerToSession {
+  final Player player;
+
+  AddPlayerToSession(this.player);
+}
+
+class RemovePlayerFromSession {
+  final Player player;
+
+  RemovePlayerFromSession(this.player);
+}

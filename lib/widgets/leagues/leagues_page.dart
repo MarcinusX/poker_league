@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/widgets/main/main_page.dart';
 
 class _ViewModel {
   final List<String> availableLeagueNames;
+  final Function(String) onLeagueChosen;
 
-  _ViewModel({this.availableLeagueNames});
+  _ViewModel({this.availableLeagueNames, this.onLeagueChosen});
 }
 
 class LeaguesPage extends StatelessWidget implements FabActionProvider {
@@ -16,6 +18,8 @@ class LeaguesPage extends StatelessWidget implements FabActionProvider {
       converter: (store) {
         return new _ViewModel(
           availableLeagueNames: store.state.availableLeagues,
+          onLeagueChosen: (leagueName) =>
+              store.dispatch(new SetActiveLeagueAction(leagueName)),
         );
       },
       builder: (context, viewModel) {
@@ -30,6 +34,9 @@ class LeaguesPage extends StatelessWidget implements FabActionProvider {
             itemBuilder: (context, index) {
               return new ListTile(
                 title: new Text(viewModel.availableLeagueNames[index]),
+                onTap: () =>
+                    viewModel.onLeagueChosen(
+                        viewModel.availableLeagueNames[index]),
               );
             },
           );
