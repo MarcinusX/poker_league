@@ -14,7 +14,7 @@ class Player {
         name = firebase["name"],
         leagueBalance = firebase["leagueBalance"];
 
-  dynamic toJson() {
+  Map<String, dynamic> toJson() {
     return {
       "key": key,
       "uid": uid,

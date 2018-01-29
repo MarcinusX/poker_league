@@ -47,7 +47,7 @@ class League {
           parsePlayersToMap(snapshot.value["players"]),
         );
 
-  dynamic toJson() {
+  Map<String, dynamic> toJson() {
     return {
       "name": name,
       "password": password,
@@ -58,6 +58,7 @@ class League {
       ),
       "sessions": new Map.fromIterables(
           sessions.keys, sessions.values.map((session) => session.toString())),
+      //TODO: Look at it
     };
   }
 }

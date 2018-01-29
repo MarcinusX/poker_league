@@ -15,13 +15,66 @@ List<Middleware<ReduxState>> createMiddleware({
   @required Firestore firestore,
   @required GoogleSignIn googleSignIn,
   @required FirebaseAuth firebaseAuth,
+  @required SharedPreferences sharedPrefs,
 }) {
   final logIn = _createLogIn(googleSignIn, firebaseAuth);
   final onLoginSuccess = _createOnLogInSuccess(firestore);
+  final onInit = _createTryToLoginInBackground(firebaseAuth);
+  final createLeague = _createCreateLeague(firestore);
+  final setActiveLeague = _createSetActiveLeague(sharedPrefs);
   return combineTypedMiddleware([
     new MiddlewareBinding<ReduxState, DoLogIn>(logIn),
     new MiddlewareBinding<ReduxState, OnLoggedInSuccessful>(onLoginSuccess),
+    new MiddlewareBinding<ReduxState, InitAction>(onInit),
+    new MiddlewareBinding<ReduxState, CreateLeagueAction>(createLeague),
+    new MiddlewareBinding<ReduxState, SetActiveLeagueAction>(setActiveLeague)
   ]);
+}
+
+_createSetActiveLeague(SharedPreferences sharedPrefs) {
+  return (Store<ReduxState> store, SetActiveLeagueAction action,
+      NextDispatcher next) {
+    sharedPrefs.setString("ActiveLeague", action.leagueName);
+    store.dispatch(new LoadActiveLeagueNameFromSP());
+    next(action);
+  };
+}
+
+Future _createLeague(Firestore firestore, String userUid, String displayName,
+    CreateLeagueAction action) async {
+  String leagueName = action.league.name;
+  await firestore
+      .document("leagues/$leagueName")
+      .setData(action.league.toJson());
+  await firestore
+      .collection("leagues/$leagueName/players")
+      .add(new Player(uid: userUid, name: displayName).toJson());
+}
+
+_createCreateLeague(Firestore firestore) {
+  return (Store<ReduxState> store, CreateLeagueAction action,
+      NextDispatcher next) {
+    _createLeague(
+        firestore,
+        store.state.firebaseState.user.uid,
+        store.state.firebaseState.googleSignIn.currentUser.displayName,
+        action).then((nil) {
+      store.dispatch(new SetActiveLeagueAction(action.league.name));
+    });
+    next(action);
+  };
+}
+
+_createTryToLoginInBackground(FirebaseAuth firebaseAuth) {
+  return (Store<ReduxState> store, action, NextDispatcher next) {
+    next(action);
+
+    store.state.firebaseState.firebaseAuth.currentUser().then((user) {
+      if (user != null) {
+        store.dispatch(new OnLoggedInSuccessful(user));
+      }
+    });
+  };
 }
 
 _createOnLogInSuccess(Firestore firestore) {
@@ -41,36 +94,7 @@ _createOnLogInSuccess(Firestore firestore) {
 middleware(Store<ReduxState> store, action, NextDispatcher next) {
   print(action.runtimeType);
 
-  if (action is CreateLeagueAction) {
-    DatabaseReference mainReference =
-    store.state.firebaseState.firebaseDatabase.reference();
-    store.dispatch(new SetActiveLeagueAction(action.league.name));
-    mainReference
-        .child("leagues")
-        .child(action.league.name)
-        .set(action.league.toJson())
-        .then((nil) {
-      mainReference
-          .child("leagues")
-          .child(action.league.name)
-          .child("players")
-          .push()
-          .set(
-        new Player(
-          uid: store.state.firebaseState.user.uid,
-          name: store
-              .state.firebaseState.googleSignIn.currentUser.displayName,
-        )
-            .toJson(),
-      );
-      mainReference
-          .child("players")
-          .child(store.state.firebaseState.user.uid)
-          .child("leagues")
-          .child(action.league.name)
-          .set(action.league.name);
-    });
-  } else if (action is SetActiveLeagueAction) {
+  if (action is SetActiveLeagueAction) {
     SharedPreferences.getInstance().then((prefs) {
       prefs.setString("ActiveLeague", action.leagueName);
       store.dispatch(new LoadActiveLeagueNameFromSP());
@@ -138,24 +162,13 @@ middleware(Store<ReduxState> store, action, NextDispatcher next) {
         .set(action.checkout.toJson());
   }
   next(action);
-  if (action is InitAction) {
-    _tryLogInInBackground(store);
-    store.dispatch(new LoadActiveLeagueNameFromSP());
-  }
-}
-
-_tryLogInInBackground(Store<ReduxState> store) async {
-  FirebaseUser user =
-  await store.state.firebaseState.firebaseAuth.currentUser();
-  if (user != null) {
-    store.dispatch(new OnLoggedInSuccessful(user));
-  }
 }
 
 _createLogIn(GoogleSignIn googleSignIn, FirebaseAuth firebaseAuth) {
   return (Store<ReduxState> store, action, NextDispatcher next) {
     _logIn(googleSignIn, firebaseAuth).then((firebaseUser) =>
         store.dispatch(new OnLoggedInSuccessful(firebaseUser)));
+
     next(action);
   };
 }
