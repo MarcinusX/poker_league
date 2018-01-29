@@ -1,5 +1,9 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
@@ -7,25 +11,37 @@ import 'package:poker_league/models/player.dart';
 import 'package:redux/redux.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+List<Middleware<ReduxState>> createMiddleware({
+  @required Firestore firestore,
+  @required GoogleSignIn googleSignIn,
+  @required FirebaseAuth firebaseAuth,
+}) {
+  final logIn = _createLogIn(googleSignIn, firebaseAuth);
+  final onLoginSuccess = _createOnLogInSuccess(firestore);
+  return combineTypedMiddleware([
+    new MiddlewareBinding<ReduxState, DoLogIn>(logIn),
+    new MiddlewareBinding<ReduxState, OnLoggedInSuccessful>(onLoginSuccess),
+  ]);
+}
+
+_createOnLogInSuccess(Firestore firestore) {
+  return (Store<ReduxState> store, action, NextDispatcher next) {
+    String userId = store.state.firebaseState.user.uid;
+    firestore
+        .collection("users/$userId/leagues")
+        .snapshots
+        .listen((event) =>
+        store.dispatch(new UserLeaguesUpdated(event.documents.map(
+                (DocumentSnapshot documentSnapshot) =>
+            documentSnapshot.documentID))));
+    next(action);
+  };
+}
+
 middleware(Store<ReduxState> store, action, NextDispatcher next) {
   print(action.runtimeType);
-  if (action is DoLogIn) {
-    _logIn(store);
-  } else if (action is OnLoggedInSuccessful) {
-    DatabaseReference userReference = store.state.firebaseState.firebaseDatabase
-        .reference()
-        .child("players")
-        .child(action.firebaseUser.uid);
 
-    userReference
-        .child("lastLogIn")
-        .set(new DateTime.now().millisecondsSinceEpoch);
-
-    userReference
-        .child("leagues")
-        .onChildAdded
-        .listen((event) => store.dispatch(new LeagueAddedToUserAction(event)));
-  } else if (action is CreateLeagueAction) {
+  if (action is CreateLeagueAction) {
     DatabaseReference mainReference =
     store.state.firebaseState.firebaseDatabase.reference();
     store.dispatch(new SetActiveLeagueAction(action.league.name));
@@ -108,7 +124,8 @@ middleware(Store<ReduxState> store, action, NextDispatcher next) {
         .child("playerSessions")
         .child(action.player.key)
         .child("buyIns")
-        .push().set(action.buyIn.toJson());
+        .push()
+        .set(action.buyIn.toJson());
   } else if (action is DoCheckout) {
     store.state.mainReference
         .child("leagues")
@@ -117,7 +134,8 @@ middleware(Store<ReduxState> store, action, NextDispatcher next) {
         .child(store.state.activeSession.key)
         .child("playerSessions")
         .child(action.player.key)
-        .child("checkout").set(action.checkout.toJson());
+        .child("checkout")
+        .set(action.checkout.toJson());
   }
   next(action);
   if (action is InitAction) {
@@ -134,9 +152,16 @@ _tryLogInInBackground(Store<ReduxState> store) async {
   }
 }
 
-_logIn(Store<ReduxState> store) async {
-  GoogleSignIn googleSignIn = store.state.firebaseState.googleSignIn;
-  FirebaseAuth auth = store.state.firebaseState.firebaseAuth;
+_createLogIn(GoogleSignIn googleSignIn, FirebaseAuth firebaseAuth) {
+  return (Store<ReduxState> store, action, NextDispatcher next) {
+    _logIn(googleSignIn, firebaseAuth).then((firebaseUser) =>
+        store.dispatch(new OnLoggedInSuccessful(firebaseUser)));
+    next(action);
+  };
+}
+
+Future<FirebaseUser> _logIn(GoogleSignIn googleSignIn,
+    FirebaseAuth firebaseAuth) async {
   GoogleSignInAccount currentUser = googleSignIn.currentUser;
   if (currentUser == null) {
     currentUser = await googleSignIn.signInSilently();
@@ -144,12 +169,12 @@ _logIn(Store<ReduxState> store) async {
   if (currentUser == null) {
     currentUser = await googleSignIn.signIn();
   }
-  if (await auth.currentUser() == null) {
+  if (await firebaseAuth.currentUser() == null) {
     GoogleSignInAuthentication credentials = await currentUser.authentication;
-    await auth.signInWithGoogle(
+    await firebaseAuth.signInWithGoogle(
       idToken: credentials.idToken,
       accessToken: credentials.accessToken,
     );
   }
-  store.dispatch(new OnLoggedInSuccessful(await auth.currentUser()));
+  return await firebaseAuth.currentUser();
 }

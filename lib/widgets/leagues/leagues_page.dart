@@ -17,7 +17,7 @@ class LeaguesPage extends StatelessWidget implements FabActionProvider {
     return new StoreConnector<ReduxState, _ViewModel>(
       converter: (store) {
         return new _ViewModel(
-          availableLeagueNames: store.state.availableLeagues,
+          availableLeagueNames: store.state.availableLeagueNames,
           onLeagueChosen: (leagueName) =>
               store.dispatch(new SetActiveLeagueAction(leagueName)),
         );

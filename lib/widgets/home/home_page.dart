@@ -24,7 +24,7 @@ class HomePage extends StatelessWidget implements FabActionProvider {
     return new StoreConnector<ReduxState, _ViewModel>(
       converter: (store) {
         return new _ViewModel(
-            areThereAnyLeagues: store.state.availableLeagues.isNotEmpty,
+            areThereAnyLeagues: store.state.availableLeagueNames.isNotEmpty,
             openNewLeagueDialog: (BuildContext context) {
               Navigator
                   .push(

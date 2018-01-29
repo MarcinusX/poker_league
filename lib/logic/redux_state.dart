@@ -13,7 +13,7 @@ class ReduxState {
   final Session activeSession;
   final League activeLeague;
   final String activeLeagueName;
-  final List<String> availableLeagues;
+  final List<String> availableLeagueNames;
   final CheckoutState checkoutState;
 
   ReduxState({
@@ -21,7 +21,7 @@ class ReduxState {
     this.firebaseState = const FirebaseState(),
     this.activeSession,
     this.activeLeague,
-    this.availableLeagues = const [],
+    this.availableLeagueNames = const [],
     this.activeLeagueName,
     this.checkoutState
   });
@@ -40,7 +40,7 @@ class ReduxState {
       firebaseState: firebaseState ?? this.firebaseState,
       activeSession: activeSession ?? this.activeSession,
       activeLeague: activeLeague ?? this.activeLeague,
-      availableLeagues: availableLeagues ?? this.availableLeagues,
+      availableLeagueNames: availableLeagues ?? this.availableLeagueNames,
       activeLeagueName: activeLeagueName ?? this.activeLeagueName,
       checkoutState: checkoutState ?? this.checkoutState,
     );

@@ -31,12 +31,8 @@ ReduxState reduce(ReduxState state, action) {
   } else if (action is OnLoggedInSuccessful) {
     newState = state.copyWith(
         firebaseState: state.firebaseState.copyWith(user: action.firebaseUser));
-  } else if (action is LeagueAddedToUserAction) {
-    if (!state.availableLeagues.contains(action.event.snapshot.key)) {
-      newState = state.copyWith(
-          availableLeagues: new List.from(state.availableLeagues)
-            ..add(action.event.snapshot.key));
-    }
+  } else if (action is UserLeaguesUpdated) {
+    newState = state.copyWith(availableLeagues: action.availableLeagueNames);
   }
   newState =
       newState.copyWith(checkoutState: reduceCheckoutState(state, action));
