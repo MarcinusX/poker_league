@@ -35,6 +35,8 @@ List<Middleware<ReduxState>> createMiddleware({
   final buyIn = _createBuyIn(database);
   final checkout = _createCheckout(database);
   final addPlayerToLeague = _createAddPlayerToLeague(database);
+  final addPlayerToSession = _createAddPlayerToSession(database);
+  final removePlayerFromSession = _createRemovePlayerFromSession(database);
   return combineTypedMiddleware([
     new MiddlewareBinding<ReduxState, DoLogIn>(logIn),
     new MiddlewareBinding<ReduxState, OnLoggedInSuccessful>(onLoginSuccess),
@@ -49,7 +51,38 @@ List<Middleware<ReduxState>> createMiddleware({
     new MiddlewareBinding<ReduxState, AddSession>(addSession),
     new MiddlewareBinding<ReduxState, DoBuyIn>(buyIn),
     new MiddlewareBinding<ReduxState, DoCheckout>(checkout),
+    new MiddlewareBinding<ReduxState, AddPlayerToSession>(addPlayerToSession),
+    new MiddlewareBinding<ReduxState, RemovePlayerFromSession>(
+        removePlayerFromSession),
   ]);
+}
+
+_createRemovePlayerFromSession(FirebaseDatabase database) {
+  return (Store<ReduxState> store, RemovePlayerFromSession action,
+      NextDispatcher next) {
+    String activeLeagueName = store.state.activeLeagueName;
+    String activeSessionKey = store.state.activeSession.key;
+    String playerKey = action.player.key;
+    database
+        .reference()
+        .child(
+        "$LEAGUES/$activeLeagueName/$SESSIONS/$activeSessionKey/$PLAYER_SESSIONS/$playerKey")
+        .remove();
+  };
+}
+
+_createAddPlayerToSession(FirebaseDatabase database) {
+  return (Store<ReduxState> store, AddPlayerToSession action,
+      NextDispatcher next) {
+    String activeLeagueName = store.state.activeLeagueName;
+    String activeSessionKey = store.state.activeSession.key;
+    String playerKey = action.player.key;
+    database
+        .reference()
+        .child(
+        "$LEAGUES/$activeLeagueName/$SESSIONS/$activeSessionKey/$PLAYER_SESSIONS/$playerKey")
+        .set({"player": playerKey});
+  };
 }
 
 _createAddPlayerToLeague(FirebaseDatabase database) {
@@ -218,8 +251,7 @@ _createOnLogInSuccess(FirebaseDatabase database) {
         .reference()
         .child("$PLAYERS/$userId/$LEAGUES_IN_PLAYER")
         .onChildAdded
-        .listen(
-            (event) =>
+        .listen((event) =>
             store.dispatch(new LeagueAddedToUser(event.snapshot.key)));
 
     next(action);

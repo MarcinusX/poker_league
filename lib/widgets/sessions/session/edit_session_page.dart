@@ -63,8 +63,12 @@ class EditSessionPageState extends State<EditSessionPage> {
                     return new ListTile(
                       title: new Text(player.name),
                       trailing: (hasBoughtIn
-                          ? new Text(vm.session.playerSessions[player].balance
-                              .toString())
+                          ? new Padding(
+                        padding: new EdgeInsets.only(right: 16.0),
+                        child: new Text(
+                            vm.session.playerSessions[player].balance
+                                .toString()),
+                      )
                           : new IconButton(
                               icon: new Icon(Icons.delete),
                               onPressed: () =>
@@ -79,6 +83,7 @@ class EditSessionPageState extends State<EditSessionPage> {
                     : new ListTile(
                         title: new DropdownButtonHideUnderline(
                           child: new DropdownButton<Player>(
+                            value: playerToBeAdded,
                             hint: new Text("Pick player to be added"),
                             items: vm.playersAbleToAdd.map((Player player) {
                               return new DropdownMenuItem<Player>(
@@ -92,8 +97,13 @@ class EditSessionPageState extends State<EditSessionPage> {
                         ),
                         trailing: new IconButton(
                           icon: new Icon(Icons.add),
-                          onPressed: () =>
-                              vm.addPlayterToSession(playerToBeAdded),
+                          onPressed: (playerToBeAdded == null
+                              ? null
+                              : () =>
+                              setState(() {
+                                vm.addPlayterToSession(playerToBeAdded);
+                                playerToBeAdded = null;
+                              })),
                         ),
                       ))
               ],
