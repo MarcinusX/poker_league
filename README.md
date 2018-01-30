@@ -1,4 +1,4 @@
-# poker_league
+# Poker League [![Build Status](https://travis-ci.org/MSzalek-Mobile/weight_tracker.svg?branch=master)](https://travis-ci.org/MSzalek-Mobile/weight_tracker)
 
 A new Flutter project.
 
