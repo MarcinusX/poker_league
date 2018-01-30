@@ -35,10 +35,10 @@ class OnLoggedInSuccessful {
   OnLoggedInSuccessful(this.firebaseUser);
 }
 
-class UserLeaguesUpdated {
-  final List<String> availableLeagueNames;
+class LeagueAddedToUser {
+  final String leagueName;
 
-  UserLeaguesUpdated(this.availableLeagueNames);
+  LeagueAddedToUser(this.leagueName);
 }
 
 // ===== ACTIVE LEAGUE NAME =====
@@ -61,9 +61,9 @@ class OnActiveLeagueNameProvided {
 // ===== ACTIVE LEAGUE =====
 
 class OnActiveLeagueUpdated {
-  final Event event;
+  final League league;
 
-  OnActiveLeagueUpdated(this.event);
+  OnActiveLeagueUpdated(this.league);
 }
 
 class CreateLeagueAction {

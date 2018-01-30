@@ -1,66 +1,193 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
+import 'package:poker_league/models/league.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:redux/redux.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const String PLAYERS = "players";
+const String LEAGUES = "leagues";
+const String LEAGUES_PLAYERS = "players";
+const String SESSIONS = "sessions";
+const String PLAYER_SESSIONS = "playerSessions";
+const String BUYINS = "buyIns";
+const String LEAGUES_IN_PLAYER = "leagues";
+
 List<Middleware<ReduxState>> createMiddleware({
-  @required Firestore firestore,
+  @required FirebaseDatabase database,
   @required GoogleSignIn googleSignIn,
   @required FirebaseAuth firebaseAuth,
-  @required SharedPreferences sharedPrefs,
 }) {
   final logIn = _createLogIn(googleSignIn, firebaseAuth);
-  final onLoginSuccess = _createOnLogInSuccess(firestore);
+  final onLoginSuccess = _createOnLogInSuccess(database);
   final onInit = _createTryToLoginInBackground(firebaseAuth);
-  final createLeague = _createCreateLeague(firestore);
-  final setActiveLeague = _createSetActiveLeague(sharedPrefs);
+  final createLeague = _createCreateLeague(database);
+  final setActiveLeague = _createSetActiveLeague();
+  final loadActiveLeague = _createLoadActiveLeague();
+  final onActiveLeagueProvided = _createOnActiveLeagueProvided(database);
+  final addSession = _createAddSession(database);
+  final buyIn = _createBuyIn(database);
+  final checkout = _createCheckout(database);
+  final addPlayerToLeague = _createAddPlayerToLeague(database);
   return combineTypedMiddleware([
     new MiddlewareBinding<ReduxState, DoLogIn>(logIn),
     new MiddlewareBinding<ReduxState, OnLoggedInSuccessful>(onLoginSuccess),
     new MiddlewareBinding<ReduxState, InitAction>(onInit),
     new MiddlewareBinding<ReduxState, CreateLeagueAction>(createLeague),
-    new MiddlewareBinding<ReduxState, SetActiveLeagueAction>(setActiveLeague)
+    new MiddlewareBinding<ReduxState, SetActiveLeagueAction>(setActiveLeague),
+    new MiddlewareBinding<ReduxState, LoadActiveLeagueNameFromSP>(
+        loadActiveLeague),
+    new MiddlewareBinding<ReduxState, OnActiveLeagueNameProvided>(
+        onActiveLeagueProvided),
+    new MiddlewareBinding<ReduxState, AddPlayerToLeague>(addPlayerToLeague),
+    new MiddlewareBinding<ReduxState, AddSession>(addSession),
+    new MiddlewareBinding<ReduxState, DoBuyIn>(buyIn),
+    new MiddlewareBinding<ReduxState, DoCheckout>(checkout),
   ]);
 }
 
-_createSetActiveLeague(SharedPreferences sharedPrefs) {
-  return (Store<ReduxState> store, SetActiveLeagueAction action,
+_createAddPlayerToLeague(FirebaseDatabase database) {
+  return (Store<ReduxState> store, AddPlayerToLeague action,
       NextDispatcher next) {
-    sharedPrefs.setString("ActiveLeague", action.leagueName);
-    store.dispatch(new LoadActiveLeagueNameFromSP());
+    String activeLeagueName = store.state.activeLeagueName;
+    database
+        .reference()
+        .child("$LEAGUES/$activeLeagueName/$LEAGUES_PLAYERS")
+        .push()
+        .set(action.player.toJson());
+  };
+}
+
+_createBuyIn(FirebaseDatabase database) {
+  return (Store<ReduxState> store, DoBuyIn action, NextDispatcher next) {
+    String leagueName = store.state.activeLeagueName;
+    String sessionKey = store.state.activeSession.key;
+    String playerKey = action.player.key;
+    database
+        .reference()
+        .child("$LEAGUES/$leagueName/$SESSIONS/$sessionKey/"
+        "$PLAYER_SESSIONS/$playerKey/$BUYINS")
+        .push()
+        .set(action.buyIn.toJson());
+
     next(action);
   };
 }
 
-Future _createLeague(Firestore firestore, String userUid, String displayName,
-    CreateLeagueAction action) async {
-  String leagueName = action.league.name;
-  await firestore
-      .document("leagues/$leagueName")
-      .setData(action.league.toJson());
-  await firestore
-      .collection("leagues/$leagueName/players")
-      .add(new Player(uid: userUid, name: displayName).toJson());
+_createCheckout(FirebaseDatabase database) {
+  return (Store<ReduxState> store, DoCheckout action, NextDispatcher next) {
+    String leagueName = store.state.activeLeagueName;
+    String sessionKey = store.state.activeSession.key;
+    String playerKey = action.player.key;
+    database
+        .reference()
+        .child(
+        "$LEAGUES/$leagueName/$SESSIONS/$sessionKey/$PLAYER_SESSIONS/$playerKey/checkout")
+        .set(action.checkout.toJson());
+
+    next(action);
+  };
 }
 
-_createCreateLeague(Firestore firestore) {
+_createAddSession(FirebaseDatabase database) {
+  return (Store<ReduxState> store, AddSession action, NextDispatcher next) {
+    String activeLeagueName = store.state.activeLeagueName;
+    database
+        .reference()
+        .child("$LEAGUES/$activeLeagueName/$SESSIONS")
+        .push()
+        .set(action.session.toJson());
+
+    next(action);
+  };
+}
+
+_createOnActiveLeagueProvided(FirebaseDatabase database) {
+  return (Store<ReduxState> store, OnActiveLeagueNameProvided action,
+      NextDispatcher next) {
+    String oldActiveLeagueName = store.state.activeLeague?.name;
+    String newLeagueName = action.leagueName;
+
+    if (oldActiveLeagueName != null) {
+      //TODO: clear listener
+      database
+          .reference()
+          .child("$LEAGUES/$oldActiveLeagueName")
+          .onValue
+          .listen(null);
+    }
+
+    database
+        .reference()
+        .child("$LEAGUES/$newLeagueName")
+        .onValue
+        .listen(
+            (event) =>
+            store.dispatch(new OnActiveLeagueUpdated(
+                new League.fromMap(event.snapshot.value))));
+
+    next(action);
+  };
+}
+
+_createLoadActiveLeague() {
+  return (Store<ReduxState> store, LoadActiveLeagueNameFromSP action,
+      NextDispatcher next) {
+    SharedPreferences.getInstance().then((sharedPrefs) {
+      String activeLeagueName = sharedPrefs.getString("ActiveLeague");
+      if (activeLeagueName != null) {
+        store.dispatch(new OnActiveLeagueNameProvided(activeLeagueName));
+      }
+    });
+
+    next(action);
+  };
+}
+
+_createSetActiveLeague() {
+  return (Store<ReduxState> store, SetActiveLeagueAction action,
+      NextDispatcher next) {
+    SharedPreferences.getInstance().then((sharedPrefs) {
+      sharedPrefs.setString("ActiveLeague", action.leagueName);
+      store.dispatch(new LoadActiveLeagueNameFromSP());
+    });
+
+    next(action);
+  };
+}
+
+Future _addLeague(FirebaseDatabase database, String userUid, String displayName,
+    CreateLeagueAction action) async {
+  String leagueName = action.league.name;
+  await database
+      .reference()
+      .child("$LEAGUES/$leagueName")
+      .set(action.league.toJson());
+  await database
+      .reference()
+      .child("$LEAGUES/$leagueName/$LEAGUES_PLAYERS")
+      .push()
+      .set(new Player(uid: userUid, name: displayName).toJson());
+  await database
+      .reference()
+      .child("$PLAYERS/$userUid/$LEAGUES_IN_PLAYER/$leagueName")
+      .set(leagueName);
+}
+
+_createCreateLeague(FirebaseDatabase database) {
   return (Store<ReduxState> store, CreateLeagueAction action,
       NextDispatcher next) {
-    _createLeague(
-        firestore,
-        store.state.firebaseState.user.uid,
-        store.state.firebaseState.googleSignIn.currentUser.displayName,
+    _addLeague(database, store.state.firebaseState.user.uid, "Temporary name",
         action).then((nil) {
       store.dispatch(new SetActiveLeagueAction(action.league.name));
     });
+
     next(action);
   };
 }
@@ -69,99 +196,34 @@ _createTryToLoginInBackground(FirebaseAuth firebaseAuth) {
   return (Store<ReduxState> store, action, NextDispatcher next) {
     next(action);
 
-    store.state.firebaseState.firebaseAuth.currentUser().then((user) {
+    firebaseAuth.currentUser().then((user) {
       if (user != null) {
         store.dispatch(new OnLoggedInSuccessful(user));
       }
     });
+
+    store.dispatch(new LoadActiveLeagueNameFromSP());
   };
 }
 
-_createOnLogInSuccess(Firestore firestore) {
-  return (Store<ReduxState> store, action, NextDispatcher next) {
-    String userId = store.state.firebaseState.user.uid;
-    firestore
-        .collection("users/$userId/leagues")
-        .snapshots
-        .listen((event) =>
-        store.dispatch(new UserLeaguesUpdated(event.documents.map(
-                (DocumentSnapshot documentSnapshot) =>
-            documentSnapshot.documentID))));
+_createOnLogInSuccess(FirebaseDatabase database) {
+  return (Store<ReduxState> store, OnLoggedInSuccessful action,
+      NextDispatcher next) {
+    String userId = action.firebaseUser.uid;
+    database
+        .reference()
+        .child("$PLAYERS/$userId/lastLogin")
+        .set(new DateTime.now().millisecondsSinceEpoch);
+    database
+        .reference()
+        .child("$PLAYERS/$userId/$LEAGUES_IN_PLAYER")
+        .onChildAdded
+        .listen(
+            (event) =>
+            store.dispatch(new LeagueAddedToUser(event.snapshot.key)));
+
     next(action);
   };
-}
-
-middleware(Store<ReduxState> store, action, NextDispatcher next) {
-  print(action.runtimeType);
-
-  if (action is SetActiveLeagueAction) {
-    SharedPreferences.getInstance().then((prefs) {
-      prefs.setString("ActiveLeague", action.leagueName);
-      store.dispatch(new LoadActiveLeagueNameFromSP());
-    });
-  } else if (action is LoadActiveLeagueNameFromSP) {
-    SharedPreferences.getInstance().then((prefs) {
-      String activeLeagueName = prefs.getString("ActiveLeague");
-      if (activeLeagueName != null) {
-        store.dispatch(new OnActiveLeagueNameProvided(activeLeagueName));
-      }
-    });
-  } else if (action is OnActiveLeagueNameProvided) {
-    String oldActiveLeagueName = store.state.activeLeague?.name;
-    DatabaseReference mainReference = store.state.mainReference;
-    if (oldActiveLeagueName != null) {
-      //clear listener
-      mainReference
-          .child("leagues")
-          .child(oldActiveLeagueName)
-          .onValue
-          .listen(null);
-    }
-
-    mainReference
-        .child("leagues")
-        .child(action.leagueName)
-        .onValue
-        .listen((event) {
-      store.dispatch(new OnActiveLeagueUpdated(event));
-    });
-  } else if (action is AddPlayerToLeague) {
-    store.state.mainReference
-        .child("leagues")
-        .child(store.state.activeLeagueName)
-        .child("players")
-        .push()
-        .set(action.player.toJson());
-  } else if (action is AddSession) {
-    store.state.mainReference
-        .child("leagues")
-        .child(store.state.activeLeagueName)
-        .child("sessions")
-        .push()
-        .set(action.session.toJson());
-  } else if (action is DoBuyIn) {
-    store.state.mainReference
-        .child("leagues")
-        .child(store.state.activeLeagueName)
-        .child("sessions")
-        .child(store.state.activeSession.key)
-        .child("playerSessions")
-        .child(action.player.key)
-        .child("buyIns")
-        .push()
-        .set(action.buyIn.toJson());
-  } else if (action is DoCheckout) {
-    store.state.mainReference
-        .child("leagues")
-        .child(store.state.activeLeagueName)
-        .child("sessions")
-        .child(store.state.activeSession.key)
-        .child("playerSessions")
-        .child(action.player.key)
-        .child("checkout")
-        .set(action.checkout.toJson());
-  }
-  next(action);
 }
 
 _createLogIn(GoogleSignIn googleSignIn, FirebaseAuth firebaseAuth) {

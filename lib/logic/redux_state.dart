@@ -31,7 +31,7 @@ class ReduxState {
     FirebaseState firebaseState,
     Session activeSession,
     League activeLeague,
-    List<String> availableLeagues,
+    List<String> availableLeagueNames,
     String activeLeagueName,
     CheckoutState checkoutState,
   }) {
@@ -40,28 +40,21 @@ class ReduxState {
       firebaseState: firebaseState ?? this.firebaseState,
       activeSession: activeSession ?? this.activeSession,
       activeLeague: activeLeague ?? this.activeLeague,
-      availableLeagueNames: availableLeagues ?? this.availableLeagueNames,
+      availableLeagueNames: availableLeagueNames ?? this.availableLeagueNames,
       activeLeagueName: activeLeagueName ?? this.activeLeagueName,
       checkoutState: checkoutState ?? this.checkoutState,
     );
   }
 
-  DatabaseReference get mainReference =>
-      firebaseState.firebaseDatabase.reference();
 }
 
 class FirebaseState {
-  final FirebaseDatabase firebaseDatabase;
-  final FirebaseAuth firebaseAuth;
   final GoogleSignIn googleSignIn;
-
   final FirebaseUser user;
 
   const FirebaseState({
-    this.firebaseAuth,
     this.googleSignIn,
     this.user,
-    this.firebaseDatabase,
   });
 
   FirebaseState copyWith({
@@ -71,9 +64,7 @@ class FirebaseState {
     FirebaseUser user,
   }) {
     return new FirebaseState(
-      firebaseAuth: firebaseAuth ?? this.firebaseAuth,
       googleSignIn: googleSignIn ?? this.googleSignIn,
-      firebaseDatabase: firebaseDatabase ?? this.firebaseDatabase,
       user: user ?? this.user,
     );
   }

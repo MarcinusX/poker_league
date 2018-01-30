@@ -10,7 +10,7 @@ import 'package:poker_league/widgets/login/login_page.dart';
 import 'package:poker_league/widgets/main/main_page.dart';
 import 'package:redux/redux.dart';
 
-import 'logic/middleware.dart';
+import 'logic/middleware.dart' as middleware;
 
 void main() {
   runApp(new MyApp());
@@ -20,17 +20,16 @@ class MyApp extends StatelessWidget {
   final Store store = new Store(
     reduce,
     initialState: new ReduxState(),
-    middleware: [middleware].toList(),
+    middleware: middleware.createMiddleware(
+        database: FirebaseDatabase.instance,
+        googleSignIn: new GoogleSignIn(),
+        firebaseAuth: FirebaseAuth.instance),
   );
 
   @override
   Widget build(BuildContext context) {
     LoginPage loginPage = new LoginPage();
-    store.dispatch(new InitAction(
-      firebaseDatabase: FirebaseDatabase.instance,
-      firebaseAuth: FirebaseAuth.instance,
-      googleSignIn: new GoogleSignIn(),
-    ));
+    store.dispatch(new InitAction());
     return new StoreProvider(
       store: store,
       child: new MaterialApp(

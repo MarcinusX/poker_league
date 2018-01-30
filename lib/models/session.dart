@@ -27,7 +27,7 @@ class Session {
           new PlayerSession.fromJson(map["playerSessions"][key], players),
         );
 
-  dynamic toJson() {
+  Map<String, dynamic> toJson() {
     return {
       "key": key,
       "dateTime": dateTime.millisecondsSinceEpoch,
@@ -60,7 +60,7 @@ class BuyIn {
 
   BuyIn(this.value, {this.isCash = true});
 
-  dynamic toJson() {
+  Map<String, dynamic> toJson() {
     return {
       "key": key,
       "value": value,
@@ -85,7 +85,7 @@ class Checkout {
           value: (id) => map["debtValues"][id],
         );
 
-  dynamic toJson() {
+  Map<String, dynamic> toJson() {
     return {
       "key": key,
       "cashValue": cashValue,

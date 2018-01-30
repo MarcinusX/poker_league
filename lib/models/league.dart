@@ -1,4 +1,3 @@
-import 'package:firebase_database/firebase_database.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
 
@@ -38,13 +37,13 @@ class League {
       : players = [],
         sessions = {};
 
-  League.fromSnapshot(DataSnapshot snapshot)
-      : name = snapshot.value["name"],
-        password = snapshot.value["password"],
-        players = parsePlayersToList(snapshot.value["players"]),
+  League.fromMap(Map<String, dynamic> jsonMap)
+      : name = jsonMap["name"],
+        password = jsonMap["password"],
+        players = parsePlayersToList(jsonMap["players"]),
         sessions = parseSessionsToMap(
-          snapshot.value["sessions"],
-          parsePlayersToMap(snapshot.value["players"]),
+          jsonMap["sessions"],
+          parsePlayersToMap(jsonMap["players"]),
         );
 
   Map<String, dynamic> toJson() {

@@ -9,30 +9,31 @@ import 'package:poker_league/models/session.dart';
 import 'checkout_actions.dart';
 
 ReduxState reduce(ReduxState state, action) {
+  print(action.runtimeType);
   ReduxState newState = state;
   if (action is ChangeMainPage) {
     newState = state.copyWith(mainPageState: action.mainPageState);
   } else if (action is OnActiveLeagueUpdated) {
-    League newLeague = new League.fromSnapshot(action.event.snapshot);
+    League newLeague = action.league;
     Session newSession = newLeague.sessions[state.activeSession?.key];
-    newState =
-        state.copyWith(activeLeague: newLeague, activeSession: newSession);
+    newState = state.copyWith(
+      activeLeague: newLeague,
+      activeSession: newSession,
+    );
   } else if (action is OnActiveLeagueNameProvided) {
     newState = state.copyWith(activeLeagueName: action.leagueName);
   } else if (action is ChooseSession) {
     newState = state.copyWith(activeSession: action.session);
-  } else if (action is InitAction) {
-    newState = state.copyWith(
-        firebaseState: state.firebaseState.copyWith(
-          firebaseDatabase: action.firebaseDatabase,
-          firebaseAuth: action.firebaseAuth,
-          googleSignIn: action.googleSignIn,
-        ));
   } else if (action is OnLoggedInSuccessful) {
     newState = state.copyWith(
         firebaseState: state.firebaseState.copyWith(user: action.firebaseUser));
-  } else if (action is UserLeaguesUpdated) {
-    newState = state.copyWith(availableLeagues: action.availableLeagueNames);
+  } else if (action is LeagueAddedToUser) {
+    if (!state.availableLeagueNames.contains(action.leagueName)) {
+      newState = state.copyWith(
+        availableLeagueNames: new List.from(state.availableLeagueNames)
+          ..add(action.leagueName),
+      );
+    }
   }
   newState =
       newState.copyWith(checkoutState: reduceCheckoutState(state, action));
@@ -75,11 +76,11 @@ CheckoutState reduceCheckoutState(ReduxState state, action) {
     return updateMaxValuesOfNonTotalSliders(newState, ignoreCash: true);
   } else if (action is ChangeDebtCheckout) {
     CheckoutState newState = state.checkoutState.copyWith(
-        checkoutsFromDebts: new Map.from(
-            state.checkoutState.checkoutsFromDebtsSliders)
-          ..[action.player] = state.checkoutState
-              .checkoutsFromDebtsSliders[action.player].copyWith(
-              value: action.value));
+        checkoutsFromDebts:
+        new Map.from(state.checkoutState.checkoutsFromDebtsSliders)
+          ..[action.player] = state
+              .checkoutState.checkoutsFromDebtsSliders[action.player]
+              .copyWith(value: action.value));
     return updateMaxValuesOfNonTotalSliders(newState);
   } else {
     return state.checkoutState;
@@ -94,16 +95,14 @@ CheckoutState updateMaxValuesOfNonTotalSliders(CheckoutState oldState,
   CheckoutSliderState cashSlider = oldState.cashCheckoutSlider;
   Map<Player, CheckoutSliderState> debts = oldState.checkoutsFromDebtsSliders;
   if (!ignoreTotal) {
-    totalSlider = oldState.totalCheckoutSlider.copyWith(
-        minValue: oldState.moneyDeclaredToCheckout);
+    totalSlider = oldState.totalCheckoutSlider
+        .copyWith(minValue: oldState.moneyDeclaredToCheckout);
   }
   if (!ignoreCash) {
-    cashSlider =
-        oldState.cashCheckoutSlider.copyWith(
-            maxValue: leftResources + oldState.cashCheckoutSlider.value);
+    cashSlider = oldState.cashCheckoutSlider
+        .copyWith(maxValue: leftResources + oldState.cashCheckoutSlider.value);
   }
-  debts =
-  new Map<Player, CheckoutSliderState>.fromIterable(
+  debts = new Map<Player, CheckoutSliderState>.fromIterable(
       oldState.checkoutsFromDebtsSliders.keys,
       key: (key) => key,
       value: (key) =>
@@ -111,7 +110,8 @@ CheckoutState updateMaxValuesOfNonTotalSliders(CheckoutState oldState,
               maxValue: math.min(
                   leftResources + oldState.checkoutsFromDebtsSliders[key].value,
                   oldState.playerDebts[key])));
-  return oldState.copyWith(totalCheckout: totalSlider,
+  return oldState.copyWith(
+      totalCheckout: totalSlider,
       checkoutsFromDebts: debts,
       cashCheckout: cashSlider);
 }
