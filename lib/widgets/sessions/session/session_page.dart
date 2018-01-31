@@ -166,7 +166,7 @@ class SessionPage extends StatelessWidget {
                             Navigator.of(context).push(
                                 new MaterialPageRoute(builder: (context) {
                                   return new CheckoutPage();
-                                })).then((Checkout checkout) {
+                                })).then((checkout) {
                                     if (checkout != null) {
                                       viewModel.doCheckout(
                                           playerSession.player, checkout);
