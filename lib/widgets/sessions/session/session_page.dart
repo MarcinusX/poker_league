@@ -8,7 +8,6 @@ import 'package:poker_league/logic/checkout_actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
-import 'package:poker_league/widgets/sessions/session/checkout_page.dart';
 import 'package:poker_league/widgets/sessions/session/edit_session_page.dart';
 
 class ViewModel {
@@ -16,14 +15,20 @@ class ViewModel {
   final Function(Player, BuyIn) doBuyIn;
   final Function(Player, Checkout) doCheckout;
   final Function(Player) prepareCheckoutPage;
+  final Function(Player, bool) setExpanded;
+  final Map<Player, bool> arePlayersExpanded;
 
-  ViewModel(
-      {this.session, this.doBuyIn, this.doCheckout, this.prepareCheckoutPage});
+  ViewModel({
+    this.session,
+    this.doBuyIn,
+    this.doCheckout,
+    this.prepareCheckoutPage,
+    this.arePlayersExpanded,
+    this.setExpanded,
+  });
 }
 
 class SessionPage extends StatelessWidget {
-  static const double _appBarHeight = 256.0;
-
   @override
   Widget build(BuildContext context) {
     return new StoreConnector<ReduxState, ViewModel>(
@@ -37,148 +42,72 @@ class SessionPage extends StatelessWidget {
             prepareCheckoutPage: (player) =>
                 store
                     .dispatch(
-                    new InitCheckout(player, store.state.activeSession)));
+                    new InitCheckout(player, store.state.activeSession)),
+            arePlayersExpanded: store.state.sessionPageState.playersExpanded,
+            setExpanded: (player, isExpanded) =>
+                store
+                    .dispatch(
+                    new SessionSetExpandedAction(player, isExpanded)));
       },
       builder: (context, viewModel) {
         return new Scaffold(
-          body: new CustomScrollView(
-            slivers: [
-              new SliverAppBar(
-                expandedHeight: _appBarHeight,
-                pinned: true,
-                actions: [
-                  new IconButton(
-                    icon: new Icon(Icons.settings),
-                    onPressed: () {
-                      Navigator.of(context).push(new MaterialPageRoute(
-                        builder: (
-                            BuildContext context) => new EditSessionPage(),
+          appBar: new AppBar(
+            title: new Text("Total: " + viewModel.session.total.toString()),
+            actions: [
+              new IconButton(
+                icon: new Icon(Icons.settings),
+                onPressed: () {
+                  Navigator.of(context).push(new MaterialPageRoute(
+                    builder: (BuildContext context) =>
+                    new EditSessionPage(),
                       ));
-                    },
-                  )
-                ],
-                flexibleSpace: new FlexibleSpaceBar(
-                  title:
-                      new Text("Total: " + viewModel.session.total.toString()),
-                  centerTitle: true,
-                  background: new DefaultTextStyle(
-                    style: Theme
-                        .of(context)
-                        .textTheme
-                        .headline
-                        .copyWith(color: Colors.white),
-                    child: new Stack(
-                      fit: StackFit.expand,
-                      children: <Widget>[
-                        new Image.asset(
-                          'assets/poker_case.jpg',
-                          fit: BoxFit.cover,
-                          height: _appBarHeight,
-                        ),
-                        const DecoratedBox(
-                          decoration: const BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: const FractionalOffset(0.5, 1.0),
-                              end: const FractionalOffset(0.5, 0.7),
-                              colors: const <Color>[
-                                Colors.black,
-                                const Color(0x00000000)
-                              ],
-                            ),
-                          ),
-                        ),
-                        new Center(
-                          child: new Padding(
-                            padding: new EdgeInsets.only(top: 64.0),
-                            child: new Column(
+                },
+              )
+            ],
+          ),
+          body: new ListView(
+            children: [
+              new Padding(
+                padding: new EdgeInsets.all(16.0),
+                child: new ExpansionPanelList(
+                  expansionCallback: (int index, bool isExpanded) {
+                    viewModel.setExpanded(
+                        viewModel.session.playerSessions.keys.toList()[index],
+                        !isExpanded);
+                  },
+                  children: viewModel.session.playerSessions.keys
+                      .map((Player player) {
+                    return new ExpansionPanel(
+                      headerBuilder: (BuildContext context, bool isExpanded) {
+                        int balance =
+                            viewModel.session.playerSessions[player].balance;
+                        return new ListTile(
+                          title: new Text(player.name),
+                          subtitle: new Text("Balance: $balance"),
+                        );
+                      },
+                      isExpanded: viewModel.arePlayersExpanded[player],
+                      body: new Column(
+                        children: <Widget>[
+                          new Container(height: 64.0),
+                          new Divider(height: 2.0,),
+                          new ButtonBar(
                               children: <Widget>[
-                                new Text("Cash: " +
-                                    viewModel.session.cash.toString()),
-                                new Text("Debt: " +
-                                    viewModel.session.debt.toString()),
+                                new FlatButton(
+                                  onPressed: null,
+                                  child: new Text("CHECKOUT"),
+                                ),
+                                new FlatButton(
+                                  onPressed: null,
+                                  child: new Text("BUY IN"),
+                                )
                               ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                          )
+                        ],
+                      ),
+                    );
+                  }).toList(),
                 ),
-              ),
-              new SliverList(
-                delegate: new SliverChildBuilderDelegate(
-                    (BuildContext context, int index) {
-                  PlayerSession playerSession =
-                      viewModel.session.playerSessions.values.toList()[index];
-                  bool hasCheckedOut = playerSession.checkout != null;
-                  return new ExpansionTile(
-                    title: new Text(
-                      playerSession.player.name,
-                      style: Theme.of(context).textTheme.headline.copyWith(
-                          color: hasCheckedOut ? Colors.grey : Colors.black),
-                    ),
-                    trailing: new Text(playerSession.balance.toString()),
-                    children: <Widget>[
-                      new ListTile(
-                        title: new Text(
-                            "Cash: " + playerSession.cashBuyIn.toString()),
-                        trailing: new FlatButton(
-                          onPressed: (hasCheckedOut
-                              ? null
-                              : (() {
-                                  _openBuyInDialog(context, true).then((value) {
-                                    if (value != null) {
-                                      viewModel.doBuyIn(playerSession.player,
-                                          new BuyIn(value));
-                                    }
-                                  });
-                                })),
-                          child: new Text("ADD CASH"),
-                        ),
-                      ),
-                      new ListTile(
-                        title: new Text(
-                            "Debt: " + playerSession.debtBuyIn.toString()),
-                        trailing: new FlatButton(
-                          onPressed: (hasCheckedOut
-                              ? null
-                              : (() {
-                                  _openBuyInDialog(context, false)
-                                      .then((value) {
-                                    if (value != null) {
-                                      viewModel.doBuyIn(playerSession.player,
-                                          new BuyIn(value, isCash: false));
-                                    }
-                                  });
-                                })),
-                          child: new Text("ADD DEBT"),
-                        ),
-                      ),
-                      new ListTile(
-                        title: new Text("Checkout: " +
-                            playerSession.checkoutTotal.toString()),
-                        trailing: new FlatButton(
-                          onPressed: (hasCheckedOut
-                              ? null
-                              : (() {
-                            viewModel.prepareCheckoutPage(
-                                playerSession.player);
-                            Navigator.of(context).push(
-                                new MaterialPageRoute(builder: (context) {
-                                  return new CheckoutPage();
-                                })).then((checkout) {
-                                    if (checkout != null) {
-                                      viewModel.doCheckout(
-                                          playerSession.player, checkout);
-                                    }
-                                  });
-                                })),
-                          child: new Text("CHECKOUT"),
-                        ),
-                      ),
-                    ],
-                  );
-                }, childCount: viewModel.session.playerSessions.length),
               ),
             ],
           ),
@@ -187,8 +116,6 @@ class SessionPage extends StatelessWidget {
     );
   }
 }
-
-class EditSessionDialog {}
 
 class DiscreteSlider extends StatefulWidget {
   final ValueChanged<int> valueChanged;

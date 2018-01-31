@@ -117,3 +117,10 @@ class RemovePlayerFromSession {
 
   RemovePlayerFromSession(this.player);
 }
+
+class SessionSetExpandedAction {
+  final Player player;
+  final bool isExpanded;
+
+  SessionSetExpandedAction(this.player, this.isExpanded);
+}

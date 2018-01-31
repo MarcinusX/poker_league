@@ -9,6 +9,8 @@ import 'package:poker_league/models/session.dart';
 @immutable
 class ReduxState {
   final MainPageState mainPageState;
+  final SessionPageState sessionPageState;
+
   final FirebaseState firebaseState;
   final Session activeSession;
   final League activeLeague;
@@ -16,18 +18,18 @@ class ReduxState {
   final List<String> availableLeagueNames;
   final CheckoutState checkoutState;
 
-  ReduxState({
-    this.mainPageState = MainPageState.HOME,
+  ReduxState({this.mainPageState = MainPageState.HOME,
+    this.sessionPageState = const SessionPageState(),
     this.firebaseState = const FirebaseState(),
     this.activeSession,
     this.activeLeague,
     this.availableLeagueNames = const [],
     this.activeLeagueName,
-    this.checkoutState
-  });
+    this.checkoutState});
 
   ReduxState copyWith({
     MainPageState mainPageState,
+    SessionPageState sessionPageState,
     FirebaseState firebaseState,
     Session activeSession,
     League activeLeague,
@@ -37,6 +39,7 @@ class ReduxState {
   }) {
     return new ReduxState(
       mainPageState: mainPageState ?? this.mainPageState,
+      sessionPageState: sessionPageState ?? this.sessionPageState,
       firebaseState: firebaseState ?? this.firebaseState,
       activeSession: activeSession ?? this.activeSession,
       activeLeague: activeLeague ?? this.activeLeague,
@@ -45,7 +48,25 @@ class ReduxState {
       checkoutState: checkoutState ?? this.checkoutState,
     );
   }
+}
 
+class SessionPageState {
+  final Map<Player, bool> playersExpanded;
+
+  const SessionPageState({this.playersExpanded = const {}});
+
+  SessionPageState.withSession(SessionPageState old, Session session)
+      : playersExpanded = new Map.fromIterable(
+    session.playerSessions.keys,
+    key: (player) => player,
+    value: (player) => old.playersExpanded[player] ?? false,
+  );
+
+  SessionPageState copyWith({Map<Player, bool> playersExpanded}) {
+    return new SessionPageState(
+      playersExpanded: playersExpanded ?? this.playersExpanded,
+    );
+  }
 }
 
 class FirebaseState {
@@ -116,8 +137,8 @@ class CheckoutState {
       cashCheckoutSlider.value +
           (checkoutsFromDebtsSliders.isEmpty
               ? 0
-              : checkoutsFromDebtsSliders.values.fold<int>(
-              0, (a, b) => a + b.value));
+              : checkoutsFromDebtsSliders.values
+              .fold<int>(0, (a, b) => a + b.value));
 
   int get leftResources => totalCheckoutSlider.value - moneyDeclaredToCheckout;
 
@@ -125,8 +146,8 @@ class CheckoutState {
     CheckoutSliderState cashCheckout,
     CheckoutSliderState totalCheckout}) {
     return new CheckoutState(
-      checkoutsFromDebtsSliders: checkoutsFromDebts ?? this
-          .checkoutsFromDebtsSliders,
+      checkoutsFromDebtsSliders:
+      checkoutsFromDebts ?? this.checkoutsFromDebtsSliders,
       cashCheckoutSlider: cashCheckout ?? this.cashCheckoutSlider,
       totalCheckoutSlider: totalCheckout ?? this.totalCheckoutSlider,
       player: this.player,

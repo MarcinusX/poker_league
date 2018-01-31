@@ -35,9 +35,30 @@ ReduxState reduce(ReduxState state, action) {
       );
     }
   }
-  newState =
-      newState.copyWith(checkoutState: reduceCheckoutState(state, action));
+  newState = newState.copyWith(
+    checkoutState: reduceCheckoutState(state, action),
+    sessionPageState: reduceSessionPageState(state, action),
+  );
   return newState;
+}
+
+SessionPageState reduceSessionPageState(ReduxState state, action) {
+  if (action is ChooseSession) {
+    return new SessionPageState.withSession(
+        state.sessionPageState, action.session);
+  } else if (action is OnActiveLeagueUpdated) {
+    if (state.activeSession != null) {
+      return new SessionPageState.withSession(
+          state.sessionPageState, state.activeSession);
+    }
+  } else if (action is SessionSetExpandedAction) {
+    return new SessionPageState(
+      playersExpanded: new Map.from(state.sessionPageState.playersExpanded)
+        ..[action.player] = action.isExpanded,
+    );
+  }
+
+  return state.sessionPageState;
 }
 
 CheckoutState reduceCheckoutState(ReduxState state, action) {
