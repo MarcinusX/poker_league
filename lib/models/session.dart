@@ -50,21 +50,24 @@ class Session {
 
 class BuyIn {
   String key;
+  final DateTime dateTime;
   final int value;
   final bool isCash;
 
   BuyIn.fromJson(Map<String, dynamic> map)
       : key = map["key"],
         value = map["value"],
-        isCash = map["isCash"];
+        isCash = map["isCash"],
+        dateTime = new DateTime.fromMillisecondsSinceEpoch(map["dateTime"]);
 
-  BuyIn(this.value, {this.isCash = true});
+  BuyIn(this.value, this.dateTime, {this.isCash = true});
 
   Map<String, dynamic> toJson() {
     return {
       "key": key,
       "value": value,
       "isCash": isCash,
+      "dateTime": dateTime.millisecondsSinceEpoch,
     };
   }
 }
@@ -113,11 +116,14 @@ class PlayerSession {
 
   PlayerSession.fromJson(Map<String, dynamic> map, Map<String, Player> players)
       : player = players[map["player"]],
-        buyIns = map["buyIns"]?.keys?.map(
+        buyIns = map["buyIns"]
+            ?.keys
+            ?.map(
               (String key) =>
           new BuyIn.fromJson(map["buyIns"][key])
             ..key = key,
-        )?.toList() ??
+        )
+            ?.toList() ??
             [],
         checkout = map["checkout"] == null
             ? null
