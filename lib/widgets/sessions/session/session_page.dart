@@ -54,7 +54,7 @@ class SessionPage extends StatelessWidget {
         builder: (context, viewModel) {
           return new Scaffold(
             appBar: new AppBar(
-              title: new Text("Total: " + viewModel.session.total.toString()),
+              title: new Text("Session details"),
               actions: [
                 new IconButton(
                   icon: new Icon(Icons.settings),
@@ -69,6 +69,44 @@ class SessionPage extends StatelessWidget {
             ),
             body: new ListView(
               children: [
+                new Padding(
+                  padding: new EdgeInsets.all(12.0),
+                  child: new Card(
+                    child: new Padding(
+                      padding: new EdgeInsets.all(16.0),
+                      child: new Column(
+                          children: [
+                            new Row(children: [
+                              new Expanded(child: new Text("Cash buy ins")),
+                              new Text(viewModel.session.cash.toString()),
+                            ]),
+                            new Divider(height: 4.0,),
+                            new Row(children: [
+                              new Expanded(child: new Text("Debt buy ins")),
+                              new Text(viewModel.session.debt.toString()),
+                            ]),
+                            new Divider(height: 4.0,),
+                            new Row(children: [
+                              new Expanded(child: new Text("Total buy ins")),
+                              new Text(viewModel.session.cash.toString()),
+                            ]),
+                            new Divider(height: 4.0,),
+                            new Row(children: [
+                              new Expanded(child: new Text("Checkouts")),
+                              new Text(viewModel.session.debt.toString()),
+                            ]),
+                            new Divider(height: 4.0,),
+                            new Row(children: [
+                              new Expanded(child: new Text("Total on board")),
+                              new Text(viewModel.session.debt.toString()),
+                            ]),
+                            new Divider(height: 4.0,),
+                          ]
+                      ),
+                    ),
+                  ),
+                ),
+
                 new Padding(
                   padding: new EdgeInsets.all(16.0),
                   child: new ExpansionPanelList(
@@ -161,7 +199,6 @@ class SessionPage extends StatelessWidget {
                               ),
                             ]),
                       ),
-//                      child: new Text("Buy in for $buyInValue in $buyInType"),
                     ),
                     new Text(
                       (debtBalanceAtTime == 0
