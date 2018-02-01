@@ -101,7 +101,7 @@ class DoBuyIn {
 
 class DoCheckout {
   final Player player;
-  final Checkout checkout;
+  final int checkout;
 
   DoCheckout(this.player, this.checkout);
 }

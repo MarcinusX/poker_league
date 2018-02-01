@@ -39,13 +39,18 @@ class Session {
     };
   }
 
-  int get cash => playerSessions.values
-      .fold(0, (sum, ps) => sum + ps.cashBuyIn - ps.cashCheckout);
+  int get cashBuyIns =>
+      playerSessions.values.fold(0, (sum, ps) => sum + ps.cashBuyIn);
 
-  int get debt => playerSessions.values
-      .fold(0, (sum, ps) => sum + ps.debtBuyIn - ps.debtCheckout);
+  int get debtBuyIns =>
+      playerSessions.values.fold(0, (sum, ps) => sum + ps.debtBuyIn);
 
-  int get total => cash + debt;
+  int get buyIns => cashBuyIns + debtBuyIns;
+
+  int get checkouts =>
+      playerSessions.values.fold(0, (sum, ps) => sum + (ps.checkout ?? 0));
+
+  int get totalOnBoard => buyIns - checkouts;
 }
 
 class BuyIn {
@@ -72,45 +77,11 @@ class BuyIn {
   }
 }
 
-class Checkout {
-  String key;
-  final int cashValue;
-  final Map<Player, int> debtValues;
-
-  Checkout({this.cashValue, this.debtValues});
-
-  Checkout.fromJson(Map<String, dynamic> map, Map<String, Player> players)
-      : key = map["key"],
-        cashValue = map["cashValue"],
-        debtValues = new Map.fromIterable(
-          map["debtValues"]?.keys ?? [],
-          key: (id) => players[id],
-          value: (id) => map["debtValues"][id],
-        );
-
-  Map<String, dynamic> toJson() {
-    return {
-      "key": key,
-      "cashValue": cashValue,
-      "debtValues": new Map.fromIterable(
-        debtValues.keys,
-        key: (Player key) => key.key,
-        value: (Player key) => debtValues[key],
-      ),
-    };
-  }
-
-  int get total => (cashValue ?? 0) + debtTotal;
-
-  int get debtTotal => (debtValues == null || debtValues.isEmpty)
-      ? 0
-      : debtValues.values.reduce((a, b) => a + b);
-}
-
 class PlayerSession {
   Player player;
   List<BuyIn> buyIns;
-  Checkout checkout;
+  int checkout;
+  DateTime checkoutDate;
 
   PlayerSession(this.player) : buyIns = [];
 
@@ -125,9 +96,10 @@ class PlayerSession {
         )
             ?.toList() ??
             [],
-        checkout = map["checkout"] == null
-            ? null
-            : new Checkout.fromJson(map["checkout"], players);
+        checkout = map["checkout"],
+        checkoutDate = (map.containsKey("checkoutDateTime")
+            ? new DateTime.fromMillisecondsSinceEpoch(map["checkoutDateTime"])
+            : null);
 
   dynamic toJson() {
     return {
@@ -137,23 +109,22 @@ class PlayerSession {
         key: (buyIn) => buyIn.key,
         value: (buyIn) => buyIn.toJson(),
       ),
-      "checkout": checkout?.toJson(),
+      "checkout": checkout,
+      "checkoutDateTime": checkoutDate.millisecondsSinceEpoch,
     };
   }
 
   int get buyIn => buyIns.fold(0, (sum, buyIn) => sum + buyIn.value);
 
   int get cashBuyIn =>
-      buyIns.fold(0, (sum, buyIn) => sum + (buyIn.isCash ? buyIn.value : 0));
+      buyIns
+          .where((buyIn) => buyIn.isCash)
+          .fold(0, (sum, buyIn) => sum + buyIn.value);
 
   int get debtBuyIn =>
-      buyIns.fold(0, (sum, buyIn) => sum + (buyIn.isCash ? 0 : buyIn.value));
+      buyIns
+          .where((buyIn) => !buyIn.isCash)
+          .fold(0, (sum, buyIn) => sum + buyIn.value);
 
-  int get cashCheckout => checkout?.cashValue ?? 0;
-
-  int get debtCheckout => checkout?.debtTotal ?? 0;
-
-  int get checkoutTotal => checkout?.total ?? 0;
-
-  int get balance => checkoutTotal - buyIn;
+  int get balance => (checkout ?? 0) - buyIn;
 }

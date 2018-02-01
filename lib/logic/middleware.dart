@@ -118,11 +118,12 @@ _createCheckout(FirebaseDatabase database) {
     String leagueName = store.state.activeLeagueName;
     String sessionKey = store.state.activeSession.key;
     String playerKey = action.player.key;
-    database
-        .reference()
-        .child(
-        "$LEAGUES/$leagueName/$SESSIONS/$sessionKey/$PLAYER_SESSIONS/$playerKey/checkout")
-        .set(action.checkout.toJson());
+    DatabaseReference playerSessionRef = database.reference().child(
+        "$LEAGUES/$leagueName/$SESSIONS/$sessionKey/$PLAYER_SESSIONS/$playerKey");
+    playerSessionRef.child("checkout").set(action.checkout);
+    playerSessionRef
+        .child("checkoutDateTime")
+        .set(new DateTime.now().millisecondsSinceEpoch);
 
     next(action);
   };

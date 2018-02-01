@@ -9,11 +9,20 @@ class TimeLine<E> extends StatelessWidget {
   final List<Tuple2<DateTime, E>> items;
   final DateWidgetGenerator dateWidgetGenerator;
   final ContentWidgetGenerator<E> contentWidgetGenerator;
+  final bool endlessStart;
+  final bool endlessEnd;
+  final Color pointColor;
+  final Color lineColor;
 
-  TimeLine(
-      {@required this.items,
-      @required this.dateWidgetGenerator,
-      @required this.contentWidgetGenerator}) {
+  TimeLine({
+    @required this.items,
+    @required this.dateWidgetGenerator,
+    @required this.contentWidgetGenerator,
+    this.endlessStart = false,
+    this.endlessEnd = false,
+    this.lineColor = Colors.purple,
+    this.pointColor = Colors.purple,
+  }) {
     items.sort((tuple1, tuple2) => tuple1.item1.compareTo(tuple2.item1));
   }
 
@@ -27,8 +36,10 @@ class TimeLine<E> extends StatelessWidget {
             new CustomPaint(
               size: new Size(32.0, 32.0),
               painter: new MyPainter(
-                isStart: items.first == tuple,
-                isEnd: items.last == tuple,
+                isStart: items.first == tuple && !endlessStart,
+                isEnd: items.last == tuple && !endlessEnd,
+                lineColor: lineColor,
+                pointColor: pointColor,
               ),
             ),
             new Expanded(
@@ -50,8 +61,8 @@ class MyPainter extends CustomPainter {
   MyPainter(
       {this.isStart = false,
       this.isEnd = false,
-      this.lineColor = Colors.purple,
-      this.pointColor = Colors.purple});
+        @required this.lineColor,
+        @required this.pointColor});
 
   @override
   void paint(Canvas canvas, Size size) {

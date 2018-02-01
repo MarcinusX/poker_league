@@ -1,14 +1,14 @@
-import 'dart:async';
 import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:intl/intl.dart';
 import 'package:poker_league/logic/actions.dart';
-import 'package:poker_league/logic/checkout_actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/player.dart';
 import 'package:poker_league/models/session.dart';
+import 'package:poker_league/widgets/sessions/session/buy_in_dialog.dart';
+import 'package:poker_league/widgets/sessions/session/checkout_dialog.dart';
 import 'package:poker_league/widgets/sessions/session/edit_session_page.dart';
 import 'package:poker_league/widgets/sessions/session/timeline.dart';
 import 'package:tuple/tuple.dart';
@@ -16,8 +16,7 @@ import 'package:tuple/tuple.dart';
 class ViewModel {
   final Session session;
   final Function(Player, BuyIn) doBuyIn;
-  final Function(Player, Checkout) doCheckout;
-  final Function(Player) prepareCheckoutPage;
+  final Function(Player, int) doCheckout;
   final Function(Player, bool) setExpanded;
   final Map<Player, bool> arePlayersExpanded;
 
@@ -25,7 +24,6 @@ class ViewModel {
     this.session,
     this.doBuyIn,
     this.doCheckout,
-    this.prepareCheckoutPage,
     this.arePlayersExpanded,
     this.setExpanded,
   });
@@ -42,9 +40,6 @@ class SessionPage extends StatelessWidget {
                   store.dispatch(new DoBuyIn(player, buyIn)),
               doCheckout: (player, checkout) =>
                   store.dispatch(new DoCheckout(player, checkout)),
-              prepareCheckoutPage: (player) =>
-                  store.dispatch(
-                      new InitCheckout(player, store.state.activeSession)),
               arePlayersExpanded: store.state.sessionPageState.playersExpanded,
               setExpanded: (player, isExpanded) =>
                   store
@@ -74,39 +69,37 @@ class SessionPage extends StatelessWidget {
                   child: new Card(
                     child: new Padding(
                       padding: new EdgeInsets.all(16.0),
-                      child: new Column(
-                          children: [
-                            new Row(children: [
-                              new Expanded(child: new Text("Cash buy ins")),
-                              new Text(viewModel.session.cash.toString()),
-                            ]),
-                            new Divider(height: 4.0,),
-                            new Row(children: [
-                              new Expanded(child: new Text("Debt buy ins")),
-                              new Text(viewModel.session.debt.toString()),
-                            ]),
-                            new Divider(height: 4.0,),
-                            new Row(children: [
-                              new Expanded(child: new Text("Total buy ins")),
-                              new Text(viewModel.session.cash.toString()),
-                            ]),
-                            new Divider(height: 4.0,),
-                            new Row(children: [
-                              new Expanded(child: new Text("Checkouts")),
-                              new Text(viewModel.session.debt.toString()),
-                            ]),
-                            new Divider(height: 4.0,),
-                            new Row(children: [
-                              new Expanded(child: new Text("Total on board")),
-                              new Text(viewModel.session.debt.toString()),
-                            ]),
-                            new Divider(height: 4.0,),
-                          ]
+                      child: new DefaultTextStyle(
+                        style: Theme
+                            .of(context)
+                            .textTheme
+                            .subhead,
+                        child: new Column(children: [
+                          new Row(children: [
+                            new Expanded(child: new Text("Cash buy ins")),
+                            new Text(viewModel.session.cashBuyIns.toString()),
+                          ]),
+                          new Divider(height: 4.0),
+                          new Row(children: [
+                            new Expanded(child: new Text("Debt buy ins")),
+                            new Text(viewModel.session.debtBuyIns.toString()),
+                          ]),
+                          new Divider(height: 4.0),
+                          new Row(children: [
+                            new Expanded(child: new Text("Checkouts")),
+                            new Text(viewModel.session.checkouts.toString()),
+                          ]),
+                          new Divider(height: 4.0),
+                          new Row(children: [
+                            new Expanded(child: new Text("Total on board")),
+                            new Text(viewModel.session.totalOnBoard.toString()),
+                          ]),
+                          new Divider(height: 4.0),
+                        ]),
                       ),
                     ),
                   ),
                 ),
-
                 new Padding(
                   padding: new EdgeInsets.all(16.0),
                   child: new ExpansionPanelList(
@@ -129,9 +122,27 @@ class SessionPage extends StatelessWidget {
 
   ExpansionPanel _createExpansionPanel(BuildContext context,
       ViewModel viewModel, Player player) {
+    PlayerSession currentPlayerSession =
+    viewModel.session.playerSessions[player];
+
+    List<Tuple2> tuples = currentPlayerSession.buyIns.map((buyIn) {
+      return new Tuple2(buyIn.dateTime,
+          {"buyIn": buyIn, "playerSession": currentPlayerSession});
+    }).toList();
+
+    List<Tuple2> checkoutTuples = [];
+
+    if (currentPlayerSession.checkout != null) {
+      Tuple2 checkoutTuple = new Tuple2(currentPlayerSession.checkoutDate, {
+        "playerSession": currentPlayerSession,
+        "checkout": currentPlayerSession.checkout,
+      });
+      checkoutTuples.add(checkoutTuple);
+    }
+
     return new ExpansionPanel(
       headerBuilder: (BuildContext context, bool isExpanded) {
-        int balance = viewModel.session.playerSessions[player].balance;
+        int balance = currentPlayerSession.balance;
         return new ListTile(
           title: new Text(player.name),
           subtitle: new Text("Balance: $balance"),
@@ -142,165 +153,175 @@ class SessionPage extends StatelessWidget {
         children: <Widget>[
           new Padding(
             padding: new EdgeInsets.symmetric(horizontal: 16.0),
-            child: new TimeLine(
-              items:
-              viewModel.session.playerSessions[player].buyIns.map((buyIn) {
-                return new Tuple2(buyIn.dateTime, {
-                  "buyIn": buyIn,
-                  "playerSession": viewModel.session.playerSessions[player]
-                });
-              }).toList(),
-              dateWidgetGenerator: (DateTime dateTime) {
-                return new Text(
-                  new DateFormat(DateFormat.HOUR24_MINUTE).format(dateTime),
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .caption,
-                );
-              },
-              contentWidgetGenerator: (data) {
-                BuyIn buyIn = data["buyIn"];
-                Iterable<BuyIn> buyInsAtTime = (data["playerSession"]
-                as PlayerSession)
-                    .buyIns
-                    .where((item) => !item.dateTime.isAfter(buyIn.dateTime));
-                int balanceAtTime =
-                buyInsAtTime.fold(0, (int, buyIn) => int + buyIn.value);
-                int debtBalanceAtTime = buyInsAtTime.fold(
-                    0, (int, buyIn) => int + (buyIn.isCash ? 0 : buyIn.value));
-                int buyInValue = buyIn.value;
-                String buyInType = buyIn.isCash ? "cash" : "debt";
-                return new Row(
-                  children: <Widget>[
-                    new Expanded(
-                      child: new RichText(
-                        text: new TextSpan(
-                            text: "Buy in for ",
-                            style: Theme
-                                .of(context)
-                                .textTheme
-                                .subhead,
-                            children: [
-                              new TextSpan(
-                                text: "$buyInValue",
-                                style: Theme
-                                    .of(context)
-                                    .textTheme
-                                    .subhead
-                                    .copyWith(fontWeight: FontWeight.bold),
-                              ),
-                              new TextSpan(
-                                text: " in $buyInType",
+            child: new Column(
+              children: [
+                new TimeLine(
+                  endlessEnd: checkoutTuples.isNotEmpty,
+                  items: tuples,
+                  dateWidgetGenerator: (DateTime dateTime) {
+                    return new Text(
+                      new DateFormat(DateFormat.HOUR24_MINUTE).format(dateTime),
+                      style: Theme
+                          .of(context)
+                          .textTheme
+                          .caption,
+                    );
+                  },
+                  contentWidgetGenerator: (data) {
+                    BuyIn buyIn = data["buyIn"];
+                    Iterable<BuyIn> buyInsAtTime =
+                    (data["playerSession"] as PlayerSession).buyIns.where(
+                            (item) => !item.dateTime.isAfter(buyIn.dateTime));
+                    int balanceAtTime =
+                    buyInsAtTime.fold(0, (int, buyIn) => int + buyIn.value);
+                    int debtBalanceAtTime = buyInsAtTime.fold(0,
+                            (int, buyIn) =>
+                        int + (buyIn.isCash ? 0 : buyIn.value));
+                    int buyInValue = buyIn.value;
+                    String buyInType = buyIn.isCash ? "cash" : "debt";
+                    return new Row(
+                      children: <Widget>[
+                        new Expanded(
+                          child: new RichText(
+                            text: new TextSpan(
+                                text: "Buy in for ",
                                 style: Theme
                                     .of(context)
                                     .textTheme
                                     .subhead,
-                              ),
-                            ]),
-                      ),
-                    ),
-                    new Text(
-                      (debtBalanceAtTime == 0
-                          ? "$balanceAtTime"
-                          : "($debtBalanceAtTime) $balanceAtTime"),
+                                children: [
+                                  new TextSpan(
+                                    text: "$buyInValue",
+                                    style: Theme
+                                        .of(context)
+                                        .textTheme
+                                        .subhead
+                                        .copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  new TextSpan(
+                                    text: " in $buyInType",
+                                    style: Theme
+                                        .of(context)
+                                        .textTheme
+                                        .subhead,
+                                  ),
+                                ]),
+                          ),
+                        ),
+                        new Text(
+                          (debtBalanceAtTime == 0
+                              ? "-$balanceAtTime"
+                              : "($debtBalanceAtTime) -$balanceAtTime"),
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .subhead,
+                        )
+                      ],
+                    );
+                  },
+                ),
+                new TimeLine(
+                  items: checkoutTuples,
+                  dateWidgetGenerator: (DateTime dateTime) {
+                    return new Text(
+                      new DateFormat(DateFormat.HOUR24_MINUTE).format(dateTime),
                       style: Theme
                           .of(context)
                           .textTheme
-                          .subhead,
-                    )
-                  ],
-                );
-              },
+                          .caption,
+                    );
+                  },
+                  contentWidgetGenerator: (data) {
+                    int checkout = data["checkout"];
+                    return new Row(
+                      children: <Widget>[
+                        new Expanded(
+                          child: new RichText(
+                            text: new TextSpan(
+                                text: "Checkout for ",
+                                style: Theme
+                                    .of(context)
+                                    .textTheme
+                                    .subhead,
+                                children: [
+                                  new TextSpan(
+                                    text: "$checkout",
+                                    style: Theme
+                                        .of(context)
+                                        .textTheme
+                                        .subhead
+                                        .copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                ]),
+                          ),
+                        ),
+                        new Text(
+                          (checkout - currentPlayerSession.debtBuyIn >= 0
+                              ? currentPlayerSession.balance.toString()
+                              : "(" +
+                              (currentPlayerSession.debtBuyIn - checkout)
+                                  .toString() +
+                              ") " +
+                              currentPlayerSession.balance.toString()),
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .subhead,
+                        )
+                      ],
+                    );
+                  },
+                  pointColor: (currentPlayerSession.balance < 0)
+                      ? Colors.red
+                      : Colors.green,
+                  endlessStart: true,
+                ),
+              ],
             ),
           ),
           new Divider(
             height: 2.0,
           ),
-          new ButtonBar(
-            children: <Widget>[
-              new FlatButton(
-                onPressed: null,
-                child: new Text("CHECKOUT"),
-              ),
-              new FlatButton(
-                onPressed: () {
-                  _openBuyInDialog(context, true).then((value) {
-                    if (value != null) {
-                      viewModel.doBuyIn(player,
-                          new BuyIn(value, new DateTime.now(), isCash: false));
-                    }
-                  });
-                },
-                child: new Text("BUY IN"),
-              )
-            ],
+          new ButtonTheme.bar(
+            child: new ButtonBar(
+              children: <Widget>[
+                new FlatButton(
+                  onPressed: () {
+                    showDialog(
+                        context: context,
+                        child: new CheckoutDialog(
+                          initialValue: viewModel
+                              .session.playerSessions[player].checkout ??
+                              0,
+                          maxValue: viewModel.session.totalOnBoard +
+                              (viewModel.session.playerSessions[player]
+                                  .checkout ??
+                                  0),
+                        )).then((checkout) {
+                      if (checkout != null) {
+                        viewModel.doCheckout(player, checkout);
+                      }
+                    });
+                  },
+                  child: new Text("CHECKOUT"),
+                ),
+                new FlatButton(
+                  onPressed: () {
+                    showDialog(context: context, child: new BuyInDialog())
+                        .then((buyIn) {
+                      if (buyIn != null) {
+                        viewModel.doBuyIn(player, buyIn);
+                      }
+                    });
+                  },
+                  child: new Text("BUY IN"),
+                )
+              ],
+            ),
           )
         ],
       ),
     );
   }
-}
-
-class DiscreteSlider extends StatefulWidget {
-  final ValueChanged<int> valueChanged;
-
-  DiscreteSlider(this.valueChanged);
-
-  @override
-  State<StatefulWidget> createState() {
-    return new DiscreteSliderState();
-  }
-}
-
-class DiscreteSliderState extends State<DiscreteSlider> {
-  double _value = 20.0;
-
-  @override
-  Widget build(BuildContext context) {
-    return new Column(
-      children: [
-        new Row(
-          children: [
-            new Expanded(
-              child: new Slider(
-                value: _value,
-                onChanged: (value) => setState(() {
-                      widget.valueChanged(value.toInt());
-                      _value = value;
-                    }),
-                min: 10.0,
-                max: 100.0,
-                divisions: 18,
-                label: _value.round().toString(),
-              ),
-            ),
-            new Text(_value.round().toString()),
-          ],
-        ),
-      ],
-      mainAxisSize: MainAxisSize.min,
-    );
-  }
-}
-
-Future<int> _openBuyInDialog(BuildContext context, bool isCash) {
-  String title = isCash ? "Cash buy in" : "Debt buy in";
-  int saved = 20;
-  return showDialog(
-    context: context,
-    barrierDismissible: false,
-    child: new AlertDialog(
-      title: new Text(title),
-      content: new DiscreteSlider((value) => saved = value),
-      actions: [
-        new FlatButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: new Text("CANCEL")),
-        new FlatButton(
-            onPressed: () => Navigator.of(context).pop(saved),
-            child: new Text("BUY IN"))
-      ],
-    ),
-  );
 }
