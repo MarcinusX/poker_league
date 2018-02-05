@@ -45,6 +45,11 @@ SessionPageState reduceSessionPageState(ReduxState state, action) {
       return new SessionPageState.withSession(
           state.sessionPageState, state.activeSession);
     }
+  } else if (action is AddPlayerToSession) {
+    return new SessionPageState(
+      playersExpanded: new Map.from(state.sessionPageState.playersExpanded)
+        ..[action.player] = false,
+    );
   } else if (action is SessionSetExpandedAction) {
     return new SessionPageState(
       playersExpanded: new Map.from(state.sessionPageState.playersExpanded)

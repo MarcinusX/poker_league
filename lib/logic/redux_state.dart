@@ -48,6 +48,9 @@ class ReduxState {
       checkoutState: checkoutState ?? this.checkoutState,
     );
   }
+
+  Player get currentPlayer =>
+      activeLeague.players.singleWhere((p) => p?.uid == firebaseState.user.uid);
 }
 
 class SessionPageState {
