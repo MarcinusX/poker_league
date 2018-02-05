@@ -101,7 +101,7 @@ class DoBuyIn {
 
 class DoCheckout {
   final Player player;
-  final Checkout checkout;
+  final int checkout;
 
   DoCheckout(this.player, this.checkout);
 }
@@ -116,4 +116,14 @@ class RemovePlayerFromSession {
   final Player player;
 
   RemovePlayerFromSession(this.player);
+}
+
+class SessionSetExpandedAction {
+  final Player player;
+  final bool isExpanded;
+
+  SessionSetExpandedAction(this.player, this.isExpanded);
+}
+
+class EndSessionAction {
 }
