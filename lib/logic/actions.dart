@@ -124,3 +124,6 @@ class SessionSetExpandedAction {
 
   SessionSetExpandedAction(this.player, this.isExpanded);
 }
+
+class EndSessionAction {
+}

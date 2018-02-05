@@ -3,6 +3,7 @@ import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:intl/intl.dart';
+import 'package:meta/meta.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/player.dart';
@@ -15,17 +16,20 @@ import 'package:tuple/tuple.dart';
 
 class ViewModel {
   final Session session;
+  final Map<Player, bool> arePlayersExpanded;
+
   final Function(Player, BuyIn) doBuyIn;
   final Function(Player, int) doCheckout;
   final Function(Player, bool) setExpanded;
-  final Map<Player, bool> arePlayersExpanded;
+  final Function() endSession;
 
   ViewModel({
-    this.session,
-    this.doBuyIn,
-    this.doCheckout,
-    this.arePlayersExpanded,
-    this.setExpanded,
+    @required this.session,
+    @required this.doBuyIn,
+    @required this.doCheckout,
+    @required this.arePlayersExpanded,
+    @required this.setExpanded,
+    @required this.endSession,
   });
 }
 
@@ -35,23 +39,26 @@ class SessionPage extends StatelessWidget {
       new StoreConnector<ReduxState, ViewModel>(
         converter: (store) {
           return new ViewModel(
-              session: store.state.activeSession,
-              doBuyIn: (player, buyIn) =>
-                  store.dispatch(new DoBuyIn(player, buyIn)),
-              doCheckout: (player, checkout) =>
-                  store.dispatch(new DoCheckout(player, checkout)),
-              arePlayersExpanded: store.state.sessionPageState.playersExpanded,
-              setExpanded: (player, isExpanded) =>
-                  store
-                      .dispatch(
-                      new SessionSetExpandedAction(player, isExpanded)));
+            session: store.state.activeSession,
+            doBuyIn: (player, buyIn) =>
+                store.dispatch(new DoBuyIn(player, buyIn)),
+            doCheckout: (player, checkout) =>
+                store.dispatch(new DoCheckout(player, checkout)),
+            arePlayersExpanded: store.state.sessionPageState.playersExpanded,
+            setExpanded: (player, isExpanded) =>
+                store
+                    .dispatch(new SessionSetExpandedAction(player, isExpanded)),
+            endSession: () => store.dispatch(new EndSessionAction()),
+          );
         },
         builder: (context, viewModel) {
           return new Scaffold(
             appBar: new AppBar(
               title: new Text("Session details"),
               actions: [
-                new IconButton(
+                (viewModel.session.isFinished
+                    ? new Container()
+                    : new IconButton(
                   icon: new Icon(Icons.settings),
                   onPressed: () {
                     Navigator.of(context).push(new MaterialPageRoute(
@@ -59,7 +66,7 @@ class SessionPage extends StatelessWidget {
                       new EditSessionPage(),
                     ));
                   },
-                )
+                ))
               ],
             ),
             body: new ListView(
@@ -75,6 +82,20 @@ class SessionPage extends StatelessWidget {
                             .textTheme
                             .subhead,
                         child: new Column(children: [
+                          (viewModel.session.isFinished
+                              ? new Center(
+                              child: new Padding(
+                                padding: new EdgeInsets.only(bottom: 8.0),
+                                child: new Text(
+                                  "SESSION FINISHED",
+                                  style: Theme
+                                      .of(context)
+                                      .textTheme
+                                      .headline
+                                      .copyWith(color: Colors.grey),
+                                ),
+                              ))
+                              : new Container()),
                           new Row(children: [
                             new Expanded(child: new Text("Cash buy ins")),
                             new Text(viewModel.session.cashBuyIns.toString()),
@@ -95,6 +116,19 @@ class SessionPage extends StatelessWidget {
                             new Text(viewModel.session.totalOnBoard.toString()),
                           ]),
                           new Divider(height: 4.0),
+                          (viewModel.session.totalOnBoard != 0 ||
+                              viewModel.session.isFinished
+                              ? new Container()
+                              : new Center(
+                            child: new Padding(
+                              padding: new EdgeInsets.only(top: 8.0),
+                              child: new RaisedButton(
+                                onPressed: () => viewModel.endSession(),
+                                color: Colors.green,
+                                child: new Text("END SESSION"),
+                              ),
+                            ),
+                          )),
                         ]),
                       ),
                     ),
@@ -280,46 +314,51 @@ class SessionPage extends StatelessWidget {
               ],
             ),
           ),
-          new Divider(
-            height: 2.0,
-          ),
-          new ButtonTheme.bar(
-            child: new ButtonBar(
-              children: <Widget>[
-                new FlatButton(
-                  onPressed: () {
-                    showDialog(
-                        context: context,
-                        child: new CheckoutDialog(
-                          initialValue: viewModel
-                              .session.playerSessions[player].checkout ??
-                              0,
-                          maxValue: viewModel.session.totalOnBoard +
-                              (viewModel.session.playerSessions[player]
-                                  .checkout ??
-                                  0),
-                        )).then((checkout) {
-                      if (checkout != null) {
-                        viewModel.doCheckout(player, checkout);
-                      }
-                    });
-                  },
-                  child: new Text("CHECKOUT"),
-                ),
-                new FlatButton(
-                  onPressed: () {
-                    showDialog(context: context, child: new BuyInDialog())
-                        .then((buyIn) {
-                      if (buyIn != null) {
-                        viewModel.doBuyIn(player, buyIn);
-                      }
-                    });
-                  },
-                  child: new Text("BUY IN"),
-                )
-              ],
+          (viewModel.session.isFinished
+              ? new Container()
+              : new Column(children: <Widget>[
+            new Divider(
+              height: 2.0,
             ),
-          )
+            new ButtonTheme.bar(
+              child: new ButtonBar(
+                children: <Widget>[
+                  new FlatButton(
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          child: new CheckoutDialog(
+                            initialValue: viewModel.session
+                                .playerSessions[player].checkout ??
+                                0,
+                            maxValue: viewModel.session.totalOnBoard +
+                                (viewModel.session.playerSessions[player]
+                                    .checkout ??
+                                    0),
+                          )).then((checkout) {
+                        if (checkout != null) {
+                          viewModel.doCheckout(player, checkout);
+                        }
+                      });
+                    },
+                    child: new Text("CHECKOUT"),
+                  ),
+                  new FlatButton(
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          child: new BuyInDialog()).then((buyIn) {
+                        if (buyIn != null) {
+                          viewModel.doBuyIn(player, buyIn);
+                        }
+                      });
+                    },
+                    child: new Text("BUY IN"),
+                  )
+                ],
+              ),
+            ),
+          ]))
         ],
       ),
     );

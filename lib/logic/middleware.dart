@@ -37,6 +37,7 @@ List<Middleware<ReduxState>> createMiddleware({
   final addPlayerToLeague = _createAddPlayerToLeague(database);
   final addPlayerToSession = _createAddPlayerToSession(database);
   final removePlayerFromSession = _createRemovePlayerFromSession(database);
+  final finishSession = _createFinishSession(database);
   return combineTypedMiddleware([
     new MiddlewareBinding<ReduxState, DoLogIn>(logIn),
     new MiddlewareBinding<ReduxState, OnLoggedInSuccessful>(onLoginSuccess),
@@ -54,7 +55,21 @@ List<Middleware<ReduxState>> createMiddleware({
     new MiddlewareBinding<ReduxState, AddPlayerToSession>(addPlayerToSession),
     new MiddlewareBinding<ReduxState, RemovePlayerFromSession>(
         removePlayerFromSession),
+    new MiddlewareBinding<ReduxState, EndSessionAction>(finishSession)
   ]);
+}
+
+_createFinishSession(FirebaseDatabase database) {
+  return (Store<ReduxState> store, EndSessionAction action,
+      NextDispatcher next) {
+    String activeLeagueName = store.state.activeLeagueName;
+    String activeSessionKey = store.state.activeSession.key;
+    database
+        .reference()
+        .child(
+        "$LEAGUES/$activeLeagueName/$SESSIONS/$activeSessionKey/isFinished")
+        .set(true);
+  };
 }
 
 _createRemovePlayerFromSession(FirebaseDatabase database) {

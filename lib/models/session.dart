@@ -110,7 +110,7 @@ class PlayerSession {
         value: (buyIn) => buyIn.toJson(),
       ),
       "checkout": checkout,
-      "checkoutDateTime": checkoutDate.millisecondsSinceEpoch,
+      "checkoutDateTime": checkoutDate?.millisecondsSinceEpoch,
     };
   }
 
