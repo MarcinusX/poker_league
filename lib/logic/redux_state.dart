@@ -50,7 +50,8 @@ class ReduxState {
   }
 
   Player get currentPlayer =>
-      activeLeague.players.singleWhere((p) => p?.uid == firebaseState.user.uid);
+      activeLeague?.players?.singleWhere((p) =>
+      p?.uid == firebaseState.user.uid);
 }
 
 class SessionPageState {
