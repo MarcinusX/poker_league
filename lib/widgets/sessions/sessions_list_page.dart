@@ -40,7 +40,7 @@ class SessionsListPage extends StatelessWidget implements FabActionProvider {
       converter: (store) {
         List<Session> sessions =
             store.state.activeLeague?.sessions?.values?.toList() ?? [];
-        sessions..sort((s1, s2) => s1.dateTime.compareTo(s2.dateTime));
+        sessions..sort((s1, s2) => s2.dateTime.compareTo(s1.dateTime));
         return new ViewModel(
           currentPlayer: store.state.currentPlayer,
           sessions: sessions,
