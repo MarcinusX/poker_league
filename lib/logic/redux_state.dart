@@ -1,6 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meta/meta.dart';
 import 'package:poker_league/models/league.dart';
 import 'package:poker_league/models/player.dart';
@@ -11,7 +9,7 @@ class ReduxState {
   final MainPageState mainPageState;
   final SessionPageState sessionPageState;
 
-  final FirebaseState firebaseState;
+  final FirebaseUser firebaseUser;
   final Session activeSession;
   final League activeLeague;
   final String activeLeagueName;
@@ -20,7 +18,7 @@ class ReduxState {
 
   ReduxState({this.mainPageState = MainPageState.HOME,
     this.sessionPageState = const SessionPageState(),
-    this.firebaseState = const FirebaseState(),
+    this.firebaseUser,
     this.activeSession,
     this.activeLeague,
     this.availableLeagueNames = const [],
@@ -30,7 +28,7 @@ class ReduxState {
   ReduxState copyWith({
     MainPageState mainPageState,
     SessionPageState sessionPageState,
-    FirebaseState firebaseState,
+    FirebaseUser firebaseUser,
     Session activeSession,
     League activeLeague,
     List<String> availableLeagueNames,
@@ -40,7 +38,7 @@ class ReduxState {
     return new ReduxState(
       mainPageState: mainPageState ?? this.mainPageState,
       sessionPageState: sessionPageState ?? this.sessionPageState,
-      firebaseState: firebaseState ?? this.firebaseState,
+      firebaseUser: firebaseUser ?? this.firebaseUser,
       activeSession: activeSession ?? this.activeSession,
       activeLeague: activeLeague ?? this.activeLeague,
       availableLeagueNames: availableLeagueNames ?? this.availableLeagueNames,
@@ -51,7 +49,7 @@ class ReduxState {
 
   Player get currentPlayer =>
       activeLeague?.players?.singleWhere((p) =>
-      p?.uid == firebaseState.user.uid);
+      p?.uid == firebaseUser.uid);
 }
 
 class SessionPageState {
@@ -69,28 +67,6 @@ class SessionPageState {
   SessionPageState copyWith({Map<Player, bool> playersExpanded}) {
     return new SessionPageState(
       playersExpanded: playersExpanded ?? this.playersExpanded,
-    );
-  }
-}
-
-class FirebaseState {
-  final GoogleSignIn googleSignIn;
-  final FirebaseUser user;
-
-  const FirebaseState({
-    this.googleSignIn,
-    this.user,
-  });
-
-  FirebaseState copyWith({
-    FirebaseDatabase firebaseDatabase,
-    FirebaseAuth firebaseAuth,
-    GoogleSignIn googleSignIn,
-    FirebaseUser user,
-  }) {
-    return new FirebaseState(
-      googleSignIn: googleSignIn ?? this.googleSignIn,
-      user: user ?? this.user,
     );
   }
 }

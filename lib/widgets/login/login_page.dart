@@ -19,7 +19,7 @@ class LoginPage extends StatelessWidget {
       converter: (store) {
         return new LoginPageViewModel(
           loginWithGoogle: () => store.dispatch(new DoLogIn()),
-          hasFirebaseUser: store.state.firebaseState.user != null,
+          hasFirebaseUser: store.state.firebaseUser != null,
         );
       },
       builder: (BuildContext buildContext, LoginPageViewModel viewModel) {

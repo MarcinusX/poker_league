@@ -232,8 +232,9 @@ Future _addLeague(FirebaseDatabase database, String userUid, String displayName,
 _createCreateLeague(FirebaseDatabase database) {
   return (Store<ReduxState> store, CreateLeagueAction action,
       NextDispatcher next) {
-    _addLeague(database, store.state.firebaseState.user.uid, "Temporary name",
-        action).then((nil) {
+    String uid = store.state.firebaseUser.uid;
+    String name = store.state.firebaseUser.displayName;
+    _addLeague(database, uid, name, action).then((nil) {
       store.dispatch(new SetActiveLeagueAction(action.league.name));
     });
 
@@ -275,7 +276,7 @@ _createOnLogInSuccess(FirebaseDatabase database) {
 }
 
 _createLogIn(GoogleSignIn googleSignIn, FirebaseAuth firebaseAuth) {
-  return (Store<ReduxState> store, action, NextDispatcher next) {
+  return (Store<ReduxState> store, DoLogIn action, NextDispatcher next) {
     _logIn(googleSignIn, firebaseAuth).then((firebaseUser) =>
         store.dispatch(new OnLoggedInSuccessful(firebaseUser)));
 
@@ -298,6 +299,9 @@ Future<FirebaseUser> _logIn(GoogleSignIn googleSignIn,
       idToken: credentials.idToken,
       accessToken: credentials.accessToken,
     );
+    await firebaseAuth.updateProfile(new UserUpdateInfo()
+      ..photoUrl = currentUser.photoUrl
+      ..displayName = currentUser.displayName);
   }
   return await firebaseAuth.currentUser();
 }

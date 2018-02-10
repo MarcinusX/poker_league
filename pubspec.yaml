@@ -6,11 +6,11 @@ dependencies:
     sdk: flutter
   numberpicker: "^0.1.0"
   redux: ">=2.0.0 <3.0.0"
-  flutter_redux: 0.3.2
-  intl: 0.15.2
-  google_sign_in: 2.0.0
-  firebase_auth: 0.4.0
-  firebase_database: 0.3.0
+  flutter_redux: "^0.3.4"
+  intl: "^0.15.2"
+  google_sign_in: "^2.0.0"
+  firebase_auth: "^0.4.4"
+  firebase_database: "^0.3.4"
   shared_preferences: "^0.2.5"
   tuple: "^1.0.1"
   quiver: "^0.28.0"

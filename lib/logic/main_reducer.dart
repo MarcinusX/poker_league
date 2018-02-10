@@ -20,8 +20,7 @@ ReduxState reduce(ReduxState state, action) {
   } else if (action is ChooseSession) {
     newState = state.copyWith(activeSession: action.session);
   } else if (action is OnLoggedInSuccessful) {
-    newState = state.copyWith(
-        firebaseState: state.firebaseState.copyWith(user: action.firebaseUser));
+    newState = state.copyWith(firebaseUser: action.firebaseUser);
   } else if (action is LeagueAddedToUser) {
     if (!state.availableLeagueNames.contains(action.leagueName)) {
       newState = state.copyWith(
