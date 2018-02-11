@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:poker_league/logic/actions.dart';
@@ -6,8 +7,15 @@ import 'package:poker_league/logic/redux_state.dart';
 class ViewModel {
   final MainPageState mainPageState;
   final Function(MainPageState) changePage;
+  final FirebaseUser firebaseUser;
+  final Function() logout;
 
-  ViewModel({this.mainPageState, this.changePage});
+  ViewModel({
+    this.mainPageState,
+    this.changePage,
+    this.firebaseUser,
+    this.logout,
+  });
 }
 
 class ListItem {
@@ -30,10 +38,10 @@ class MyDrawer extends StatelessWidget {
   final ListItem leaguesItem = new ListItem(
       page: MainPageState.LEAGUES, name: "Leagues", icon: Icons.whatshot);
 
-  Widget _mapListItemToWidget(
-      BuildContext context, ViewModel viewModel, ListItem item) {
+
+  Widget _mapListItemToWidget(BuildContext context, ViewModel viewModel, ListItem item) {
     Color color =
-        (viewModel.mainPageState == item.page) ? Colors.blue : Colors.black;
+    (viewModel.mainPageState == item.page) ? Colors.blue : Colors.black;
     Text text = new Text(
       item.name,
       style: Theme.of(context).textTheme.body2.copyWith(color: color),
@@ -55,6 +63,7 @@ class MyDrawer extends StatelessWidget {
     return new StoreConnector<ReduxState, ViewModel>(
       converter: (store) {
         return new ViewModel(
+          firebaseUser: store.state.firebaseUser,
           mainPageState: store.state.mainPageState,
           changePage: (state) => store.dispatch(new ChangeMainPage(state)),
         );
@@ -64,13 +73,43 @@ class MyDrawer extends StatelessWidget {
           child: new ListView(
             children: [
               new DrawerHeader(
-                child: new Text("Header"),
+                child: new Stack(
+                  fit: StackFit.expand,
+                  children: <Widget>[
+                    new Container(),
+                    new Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        new Padding(
+                          padding: new EdgeInsets.only(bottom: 8.0),
+                          child: new CircleAvatar(
+                            radius: 24.0,
+                            backgroundImage: new NetworkImage(
+                                viewModel.firebaseUser.photoUrl),
+                          ),
+                        ),
+                        new Padding(
+                            padding: new EdgeInsets.symmetric(vertical: 8.0),
+                            child:
+                            new Text(viewModel.firebaseUser.displayName)),
+                        new Text(
+                          viewModel.firebaseUser.email,
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .body1,
+                        )
+                      ],
+                    )
+                  ],
+                ),
               )
             ]
               ..addAll(items.map(
-                  (item) => _mapListItemToWidget(context, viewModel, item)))
-              ..add(new Divider())
-              ..add(_mapListItemToWidget(context, viewModel, leaguesItem)),
+                      (item) => _mapListItemToWidget(context, viewModel, item)))
+              ..add(new Divider())..add(_mapListItemToWidget(context, viewModel, leaguesItem)),
           ),
         );
       },
