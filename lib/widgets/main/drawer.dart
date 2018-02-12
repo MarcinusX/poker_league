@@ -38,8 +38,8 @@ class MyDrawer extends StatelessWidget {
   final ListItem leaguesItem = new ListItem(
       page: MainPageState.LEAGUES, name: "Leagues", icon: Icons.whatshot);
 
-
-  Widget _mapListItemToWidget(BuildContext context, ViewModel viewModel, ListItem item) {
+  Widget _mapListItemToWidget(BuildContext context, ViewModel viewModel,
+      ListItem item) {
     Color color =
     (viewModel.mainPageState == item.page) ? Colors.blue : Colors.black;
     Text text = new Text(
@@ -73,10 +73,17 @@ class MyDrawer extends StatelessWidget {
           child: new ListView(
             children: [
               new DrawerHeader(
+                decoration: const BoxDecoration(
+                  image: const DecorationImage(
+                    fit: BoxFit.cover,
+                    image: const AssetImage(
+                      'assets/hand-AA.jpeg',
+                    ),
+                  ),
+                ),
                 child: new Stack(
                   fit: StackFit.expand,
                   children: <Widget>[
-                    new Container(),
                     new Column(
                       mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -92,14 +99,21 @@ class MyDrawer extends StatelessWidget {
                         ),
                         new Padding(
                             padding: new EdgeInsets.symmetric(vertical: 8.0),
-                            child:
-                            new Text(viewModel.firebaseUser.displayName)),
+                            child: new Text(
+                              viewModel.firebaseUser.displayName,
+                              style: Theme
+                                  .of(context)
+                                  .textTheme
+                                  .subhead
+                                  .copyWith(color: Colors.white),
+                            )),
                         new Text(
                           viewModel.firebaseUser.email,
                           style: Theme
                               .of(context)
                               .textTheme
-                              .body1,
+                              .body1
+                              .copyWith(color: Colors.white),
                         )
                       ],
                     )
@@ -109,7 +123,8 @@ class MyDrawer extends StatelessWidget {
             ]
               ..addAll(items.map(
                       (item) => _mapListItemToWidget(context, viewModel, item)))
-              ..add(new Divider())..add(_mapListItemToWidget(context, viewModel, leaguesItem)),
+              ..add(new Divider())..add(
+                  _mapListItemToWidget(context, viewModel, leaguesItem)),
           ),
         );
       },
