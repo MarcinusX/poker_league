@@ -92,7 +92,7 @@ class MyDrawer extends StatelessWidget {
                         new Padding(
                           padding: new EdgeInsets.only(bottom: 8.0),
                           child: new CircleAvatar(
-                            radius: 24.0,
+                            radius: 32.0,
                             backgroundImage: new NetworkImage(
                                 viewModel.firebaseUser.photoUrl),
                           ),
