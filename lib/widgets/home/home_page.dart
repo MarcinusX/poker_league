@@ -4,7 +4,6 @@ import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/league.dart';
 import 'package:poker_league/widgets/leagues/league_dialog.dart';
-import 'package:poker_league/widgets/main/main_page.dart';
 
 class _ViewModel {
   final bool areThereAnyLeagues;
@@ -18,7 +17,7 @@ class _ViewModel {
   });
 }
 
-class HomePage extends StatelessWidget implements FabActionProvider {
+class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new StoreConnector<ReduxState, _ViewModel>(
@@ -29,7 +28,7 @@ class HomePage extends StatelessWidget implements FabActionProvider {
               Navigator
                   .push(
                   context,
-                  new MaterialPageRoute(
+                  new MaterialPageRoute<League>(
                       builder: (context) {
                         return new LeagueDialog();
                       },
@@ -98,7 +97,4 @@ class HomePage extends StatelessWidget implements FabActionProvider {
       },
     );
   }
-
-  @override
-  get onFabPressed => null;
 }

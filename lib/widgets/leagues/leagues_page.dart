@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
-import 'package:poker_league/widgets/main/main_page.dart';
 
 class _ViewModel {
   final List<String> availableLeagueNames;
@@ -11,7 +10,7 @@ class _ViewModel {
   _ViewModel({this.availableLeagueNames, this.onLeagueChosen});
 }
 
-class LeaguesPage extends StatelessWidget implements FabActionProvider {
+class LeaguesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new StoreConnector<ReduxState, _ViewModel>(
@@ -44,7 +43,4 @@ class LeaguesPage extends StatelessWidget implements FabActionProvider {
       },
     );
   }
-
-  @override
-  get onFabPressed => null;
 }

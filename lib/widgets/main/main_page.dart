@@ -1,21 +1,34 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
+import 'package:poker_league/models/player.dart';
+import 'package:poker_league/models/session.dart';
 import 'package:poker_league/widgets/home/home_page.dart';
+import 'package:poker_league/widgets/leagues/leagues_fab.dart';
 import 'package:poker_league/widgets/leagues/leagues_page.dart';
 import 'package:poker_league/widgets/main/drawer.dart';
+import 'package:poker_league/widgets/players/player_dialog.dart'
+as playerDialog;
 import 'package:poker_league/widgets/players/players_page.dart';
+import 'package:poker_league/widgets/sessions/new_session_dialog.dart';
 import 'package:poker_league/widgets/sessions/sessions_list_page.dart';
 
 class ViewModel {
   final MainPageState mainPageState;
   final Function(MainPageState) changePage;
+  final Function(BuildContext) openNewSessionDialog;
+  final Function(BuildContext) openNewPlayerDialog;
 
-  ViewModel({this.mainPageState, this.changePage});
+  ViewModel({this.mainPageState,
+    this.changePage,
+    this.openNewPlayerDialog,
+    this.openNewSessionDialog});
 }
 
-final Map<MainPageState, FabActionProvider> pages = {
+final Map<MainPageState, Widget> pages = {
   MainPageState.HOME: new HomePage(),
   MainPageState.SESSIONS: new SessionsListPage(),
   MainPageState.PLAYERS: new PlayersPage(),
@@ -35,15 +48,29 @@ class MainPage extends StatelessWidget {
     }
   }
 
-  FloatingActionButton _initFab(BuildContext context, MainPageState page) {
-    if (pages[page].onFabPressed == null) {
-      return null;
-    } else {
-      return new FloatingActionButton(
-        onPressed: () => pages[page].onFabPressed(context),
-        child: new Icon(Icons.add),
-        key: new Key("Fab_" + page.toString()),
-      );
+  Widget _initFab(BuildContext context, MainPageState page, ViewModel vm) {
+    switch (page) {
+      case MainPageState.HOME:
+        return null;
+      case MainPageState.SESSIONS:
+        return new FloatingActionButton(
+          onPressed: () => vm.openNewSessionDialog(context),
+          child: new Icon(Icons.add),
+          key: new Key("Fab_Sessions"),
+        );
+      case MainPageState.PLAYERS:
+        return new FloatingActionButton(
+          onPressed: () => vm.openNewPlayerDialog(context),
+          child: new Icon(Icons.add),
+          key: new Key("Fab_Players"),
+        );
+      case MainPageState.LEAGUES:
+        return new FoldingFloatingActionButton(
+          searchLeague: () {},
+          addLeague: () {},
+        );
+      default:
+        return null;
     }
   }
 
@@ -53,6 +80,23 @@ class MainPage extends StatelessWidget {
       return new ViewModel(
         mainPageState: store.state.mainPageState,
         changePage: (state) => store.dispatch(new ChangeMainPage(state)),
+        openNewPlayerDialog: (context) {
+          playerDialog.openNewPlayerDialog(context).then((String name) {
+            if (name != null) {
+              Player player = new Player(name: name);
+              store.dispatch(new AddPlayerToLeague(player));
+            }
+          });
+        },
+        openNewSessionDialog: (context) {
+          _openNewSessionDialog(
+              context, store.state?.activeLeague?.players ?? [])
+              .then((Session session) {
+            if (session != null) {
+              store.dispatch(new AddSession(session));
+            }
+          });
+        },
       );
     }, builder: (context, viewModel) {
       return new Scaffold(
@@ -80,12 +124,22 @@ class MainPage extends StatelessWidget {
             ),
           ],
         ),
-        floatingActionButton: _initFab(context, viewModel.mainPageState),
+        floatingActionButton:
+        _initFab(context, viewModel.mainPageState, viewModel),
       );
     });
   }
 }
 
-abstract class FabActionProvider implements Widget {
-  Function(BuildContext) get onFabPressed;
+//Sessions FloatingActionButton
+Future<Session> _openNewSessionDialog(BuildContext context,
+    List<Player> availablePlayers) async {
+  return Navigator.of(context).push(new MaterialPageRoute(
+    builder: (BuildContext context) {
+      return new NewSessionDialog(
+        availablePlayers: availablePlayers,
+      );
+    },
+    fullscreenDialog: true,
+  ));
 }
