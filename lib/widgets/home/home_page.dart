@@ -8,12 +8,10 @@ import 'package:poker_league/widgets/leagues/league_dialog.dart';
 class _ViewModel {
   final bool areThereAnyLeagues;
   final Function(BuildContext) openNewLeagueDialog;
-  final Function(League) pushCreatedLeague;
 
   _ViewModel({
     this.areThereAnyLeagues,
     this.openNewLeagueDialog,
-    this.pushCreatedLeague,
   });
 }
 

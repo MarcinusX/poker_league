@@ -3,6 +3,15 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 
+
+class FabOption {
+  final String text;
+  final Function() action;
+
+  FabOption(this.text, this.action);
+}
+
+
 class FoldingFloatingActionButton extends StatefulWidget {
   final Function() searchLeague;
   final Function() addLeague;
@@ -14,13 +23,6 @@ class FoldingFloatingActionButton extends StatefulWidget {
   State<StatefulWidget> createState() {
     return new FabState();
   }
-}
-
-class FabOption {
-  final String text;
-  final Function() action;
-
-  FabOption(this.text, this.action);
 }
 
 class FabState extends State<FoldingFloatingActionButton>
@@ -37,11 +39,12 @@ class FabState extends State<FoldingFloatingActionButton>
 
   @override
   Widget build(BuildContext context) {
-    Color backgroundColor = Theme.of(context).cardColor;
-    Color foregroundColor = Theme.of(context).accentColor;
+    Color backgroundColor = Theme
+        .of(context)
+        .accentColor;
 
     final List<FabOption> options = [
-      new FabOption("Search", widget.searchLeague),
+      new FabOption("Join", widget.searchLeague),
       new FabOption("Create", widget.addLeague),
     ];
 
@@ -65,7 +68,7 @@ class FabState extends State<FoldingFloatingActionButton>
                 },
                 child: new Chip(
                   label: new Text(options[index].text),
-                  backgroundColor: foregroundColor,
+                  backgroundColor: backgroundColor,
                   labelStyle: Theme
                       .of(context)
                       .textTheme
