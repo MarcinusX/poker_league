@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:meta/meta.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/player.dart';
@@ -22,10 +23,11 @@ class ViewModel {
   final Function(BuildContext) openNewSessionDialog;
   final Function(BuildContext) openNewPlayerDialog;
 
-  ViewModel({this.mainPageState,
-    this.changePage,
-    this.openNewPlayerDialog,
-    this.openNewSessionDialog});
+  ViewModel({
+    @required this.mainPageState,
+    @required this.changePage,
+    @required this.openNewPlayerDialog,
+    @required this.openNewSessionDialog,});
 }
 
 final Map<MainPageState, Widget> pages = {
@@ -65,10 +67,7 @@ class MainPage extends StatelessWidget {
           key: new Key("Fab_Players"),
         );
       case MainPageState.LEAGUES:
-        return new FoldingFloatingActionButton(
-          searchLeague: () {},
-          addLeague: () {},
-        );
+        return new FoldingFloatingActionButton();
       default:
         return null;
     }

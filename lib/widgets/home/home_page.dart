@@ -3,7 +3,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/league.dart';
-import 'package:poker_league/widgets/leagues/league_dialog.dart';
+import 'package:poker_league/widgets/leagues/new_league_dialog.dart';
 
 class _ViewModel {
   final bool areThereAnyLeagues;
@@ -28,7 +28,7 @@ class HomePage extends StatelessWidget {
                   context,
                   new MaterialPageRoute<League>(
                       builder: (context) {
-                        return new LeagueDialog();
+                        return new NewLeagueDialog();
                       },
                       fullscreenDialog: true))
                   .then((League league) {
