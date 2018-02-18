@@ -38,6 +38,7 @@ List<Middleware<ReduxState>> createMiddleware({
   final addPlayerToSession = _createAddPlayerToSession(database);
   final removePlayerFromSession = _createRemovePlayerFromSession(database);
   final finishSession = _createFinishSession(database);
+  final findLeagueName = _createFindLeagueName(database);
   return combineTypedMiddleware([
     new MiddlewareBinding<ReduxState, DoLogIn>(logIn),
     new MiddlewareBinding<ReduxState, OnLoggedInSuccessful>(onLoginSuccess),
@@ -57,6 +58,22 @@ List<Middleware<ReduxState>> createMiddleware({
         removePlayerFromSession),
     new MiddlewareBinding<ReduxState, EndSessionAction>(finishSession)
   ]);
+}
+
+_createFindLeagueName(FirebaseDatabase database) {
+  return (Store<ReduxState> store, FindLeagueToJoinAction action,
+      NextDispatcher next) {
+    String leagueName = action.leagueName;
+    database.reference().child("$LEAGUES/$leagueName").once().then((
+        DataSnapshot dataSnapshot) {
+      if (dataSnapshot.value == null) {
+        store.dispatch(new OnFindLeagueResultAction(leagueName, null));
+      } else {
+        store.dispatch(new OnFindLeagueResultAction(
+            leagueName, new League.fromMap(dataSnapshot.value)));
+      }
+    });
+  };
 }
 
 _createFinishSession(FirebaseDatabase database) {

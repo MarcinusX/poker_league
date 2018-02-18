@@ -31,8 +31,19 @@ ReduxState reduce(ReduxState state, action) {
   }
   newState = newState.copyWith(
     sessionPageState: reduceSessionPageState(state, action),
+    joinLeaguePageState: reduceJoinPageState(state, action),
   );
   return newState;
+}
+
+JoinLeaguePageState reduceJoinPageState(ReduxState state, action) {
+  if (action is OnFindLeagueResultAction) {
+    return new JoinLeaguePageState(
+      chosenLeagueName: action.requestedLeagueName,
+      league: action.league,
+    );
+  }
+  return state.joinLeaguePageState;
 }
 
 SessionPageState reduceSessionPageState(ReduxState state, action) {

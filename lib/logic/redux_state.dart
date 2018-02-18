@@ -8,6 +8,7 @@ import 'package:poker_league/models/session.dart';
 class ReduxState {
   final MainPageState mainPageState;
   final SessionPageState sessionPageState;
+  final JoinLeaguePageState joinLeaguePageState;
 
   final FirebaseUser firebaseUser;
   final Session activeSession;
@@ -21,7 +22,8 @@ class ReduxState {
     this.activeSession,
     this.activeLeague,
     this.availableLeagueNames = const [],
-    this.activeLeagueName,});
+    this.activeLeagueName,
+    this.joinLeaguePageState});
 
   ReduxState copyWith({
     MainPageState mainPageState,
@@ -31,6 +33,7 @@ class ReduxState {
     League activeLeague,
     List<String> availableLeagueNames,
     String activeLeagueName,
+    JoinLeaguePageState joinLeaguePageState,
   }) {
     return new ReduxState(
       mainPageState: mainPageState ?? this.mainPageState,
@@ -40,14 +43,15 @@ class ReduxState {
       activeLeague: activeLeague ?? this.activeLeague,
       availableLeagueNames: availableLeagueNames ?? this.availableLeagueNames,
       activeLeagueName: activeLeagueName ?? this.activeLeagueName,
+      joinLeaguePageState: joinLeaguePageState ?? this.joinLeaguePageState,
     );
   }
 
   Player get currentPlayer =>
-      activeLeague?.players?.singleWhere((p) =>
-      p?.uid == firebaseUser.uid);
+      activeLeague?.players?.singleWhere((p) => p?.uid == firebaseUser.uid);
 }
 
+@immutable
 class SessionPageState {
   final Map<Player, bool> playersExpanded;
 
@@ -64,6 +68,30 @@ class SessionPageState {
     return new SessionPageState(
       playersExpanded: playersExpanded ?? this.playersExpanded,
     );
+  }
+}
+
+@immutable
+class JoinLeaguePageState {
+  final String chosenLeagueName;
+  final bool isLeagueValidated;
+  final League league;
+
+  JoinLeaguePageState({
+    this.chosenLeagueName,
+    this.isLeagueValidated,
+    this.league,
+  });
+
+  JoinLeaguePageState copyWith({
+    String chosenLeagueName,
+    bool isLeagueValidated,
+    League league,
+  }) {
+    return new JoinLeaguePageState(
+        chosenLeagueName: chosenLeagueName ?? this.chosenLeagueName,
+        isLeagueValidated: isLeagueValidated ?? this.isLeagueValidated,
+        league: league ?? this.league);
   }
 }
 

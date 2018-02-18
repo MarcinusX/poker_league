@@ -127,3 +127,16 @@ class SessionSetExpandedAction {
 
 class EndSessionAction {
 }
+
+class FindLeagueToJoinAction {
+  final String leagueName;
+
+  FindLeagueToJoinAction(this.leagueName);
+}
+
+class OnFindLeagueResultAction {
+  final String requestedLeagueName;
+  final League league;
+
+  OnFindLeagueResultAction(this.requestedLeagueName, this.league);
+}

@@ -1,40 +1,78 @@
 import 'package:flutter/material.dart';
-import 'package:poker_league/models/league.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:meta/meta.dart';
+import 'package:poker_league/logic/redux_state.dart';
 
-class JoinLeaguePage extends StatelessWidget {
-  final TextEditingController _nameController = new TextEditingController();
-  final TextEditingController _passwordController = new TextEditingController();
+@immutable
+class ViewModel {
+  final String leagueName;
+  final bool isLeagueValidated;
+
+  ViewModel({this.leagueName, this.isLeagueValidated});
+}
+
+class JoinLeagueDialog extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return new JoinLeagueDialogState();
+  }
+}
+
+class JoinLeagueDialogState extends State<JoinLeagueDialog> {
+  TextEditingController _nameController;
+  TextEditingController _passwordController;
+  String leagueName;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = new TextEditingController();
+    _passwordController = new TextEditingController();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text("New league"),
-        actions: [
-          new FlatButton(
-            onPressed: () => Navigator.of(context).pop(
-                new League(_nameController.text, _passwordController.text)),
-            child: new Text(
-              "CREATE",
-              style: new TextStyle(color: Colors.white),
+    return new StoreConnector<ReduxState, ViewModel>(converter: (store) {
+      return new ViewModel();
+    }, builder: (context, vm) {
+      return new Scaffold(
+        appBar: new AppBar(
+          title: new Text("Join league"),
+        ),
+        body: new Column(
+          children: <Widget>[
+            new Padding(
+              padding:
+              new EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: new TextField(
+                obscureText: true,
+                decoration: new InputDecoration(
+                    labelText: "League password", icon: new Icon(Icons.lock)),
+                controller: _passwordController,
+              ),
             ),
-          ),
-        ],
-      ),
-      body: new Column(
-        children: <Widget>[
-          new TextField(
-            decoration: new InputDecoration(labelText: "League name"),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _leagueSearchWidget(BuildContext context, ViewModel vm) {
+    return new Column(
+      children: <Widget>[
+        new Padding(
+          padding: new EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: new TextField(
+            decoration: new InputDecoration(
+                labelText: "League name", icon: new Icon(Icons.subject)),
             controller: _nameController,
           ),
-          new TextField(
-            decoration: new InputDecoration(
-              labelText: "League password",
-            ),
-            controller: _passwordController,
-          )
-        ],
-      ),
+        ),
+        new RaisedButton(
+          onPressed: () {},
+          child: new Text("Find league"),
+        )
+      ],
     );
   }
 }
