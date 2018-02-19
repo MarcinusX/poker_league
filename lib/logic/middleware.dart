@@ -56,7 +56,8 @@ List<Middleware<ReduxState>> createMiddleware({
     new MiddlewareBinding<ReduxState, AddPlayerToSession>(addPlayerToSession),
     new MiddlewareBinding<ReduxState, RemovePlayerFromSession>(
         removePlayerFromSession),
-    new MiddlewareBinding<ReduxState, EndSessionAction>(finishSession)
+    new MiddlewareBinding<ReduxState, EndSessionAction>(finishSession),
+    new MiddlewareBinding<ReduxState, FindLeagueToJoinAction>(findLeagueName),
   ]);
 }
 

@@ -6,6 +6,7 @@ import 'package:meta/meta.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/league.dart';
+import 'package:poker_league/widgets/leagues/join_league_page.dart';
 import 'package:poker_league/widgets/leagues/new_league_dialog.dart';
 
 class _FabOption {
@@ -64,7 +65,14 @@ class FabState extends State<FoldingFloatingActionButton>
               }
             });
           },
-          openJoinLeagueDialog: (context) {},
+          openJoinLeagueDialog: (context) {
+            store.dispatch(new PrepareJoinLeaguePageAction());
+            Navigator.push(context, new MaterialPageRoute<League>(
+              builder: (context) {
+                return new JoinLeaguePage();
+              },
+            ));
+          },
         );
       },
       builder: (context, vm) {

@@ -140,3 +140,6 @@ class OnFindLeagueResultAction {
 
   OnFindLeagueResultAction(this.requestedLeagueName, this.league);
 }
+
+class PrepareJoinLeaguePageAction {
+}

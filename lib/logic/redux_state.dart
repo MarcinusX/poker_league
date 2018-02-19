@@ -16,14 +16,16 @@ class ReduxState {
   final String activeLeagueName;
   final List<String> availableLeagueNames;
 
-  ReduxState({this.mainPageState = MainPageState.HOME,
+  ReduxState({
+    this.mainPageState = MainPageState.HOME,
     this.sessionPageState = const SessionPageState(),
     this.firebaseUser,
     this.activeSession,
     this.activeLeague,
     this.availableLeagueNames = const [],
     this.activeLeagueName,
-    this.joinLeaguePageState});
+    this.joinLeaguePageState = const JoinLeaguePageState(),
+  });
 
   ReduxState copyWith({
     MainPageState mainPageState,
@@ -77,7 +79,7 @@ class JoinLeaguePageState {
   final bool isLeagueValidated;
   final League league;
 
-  JoinLeaguePageState({
+  const JoinLeaguePageState({
     this.chosenLeagueName,
     this.isLeagueValidated,
     this.league,
