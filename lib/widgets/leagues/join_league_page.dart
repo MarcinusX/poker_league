@@ -91,7 +91,12 @@ class JoinLeaguePageState extends State<JoinLeaguePage> {
           padding: new EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: new TextField(
             decoration: new InputDecoration(
-                labelText: "League name", icon: new Icon(Icons.subject)),
+              labelText: "League name",
+              icon: new Icon(Icons.subject),
+              errorText: (vm.isLeagueValid ?? true)
+                  ? null
+                  : "League with that name does not exist",
+            ),
             controller: _nameController,
             onChanged: (string) => setState(() {}),
           ),

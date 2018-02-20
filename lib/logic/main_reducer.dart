@@ -40,6 +40,7 @@ JoinLeaguePageState reduceJoinPageState(ReduxState state, action) {
   if (action is OnFindLeagueResultAction) {
     return new JoinLeaguePageState(
       chosenLeagueName: action.requestedLeagueName,
+      isLeagueValidated: action.league != null,
       league: action.league,
     );
   } else if (action is PrepareJoinLeaguePageAction) {
