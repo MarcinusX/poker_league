@@ -55,21 +55,9 @@ class JoinLeaguePageState extends State<JoinLeaguePage> {
           appBar: new AppBar(
             title: new Text("Join league"),
           ),
-          body: _buildBody(context, vm),
-//        body: new Column(
-//          children: <Widget>[
-//            new Padding(
-//              padding:
-//              new EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-//              child: new TextField(
-//                obscureText: true,
-//                decoration: new InputDecoration(
-//                    labelText: "League password", icon: new Icon(Icons.lock)),
-//                controller: _passwordController,
-//              ),
-//            ),
-//          ],
-//        ),
+          body: new SingleChildScrollView(
+            child: _buildBody(context, vm),
+          ),
         );
       },
     );
@@ -79,8 +67,75 @@ class JoinLeaguePageState extends State<JoinLeaguePage> {
     if (vm.league == null) {
       return _leagueSearchWidget(context, vm);
     } else {
-      return new Text("not null");
+      return _leagueFoundWidget(context, vm);
     }
+  }
+
+  Widget _leagueFoundWidget(BuildContext context, ViewModel vm) {
+    return new Center(
+      child: new Column(
+        children: <Widget>[
+          new Padding(
+            padding: new EdgeInsets.all(16.0),
+            child: new Text(
+              vm.league.name,
+              textAlign: TextAlign.center,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .headline,
+            ),
+          ),
+          new Text(
+            "Players:",
+            style: Theme
+                .of(context)
+                .textTheme
+                .subhead
+                .copyWith(color: Colors.grey),
+          ),
+          new Column(
+            children: vm.league.players
+                .map((p) =>
+            new Text(
+              p.name,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .body1
+                  .copyWith(color: Colors.grey),
+            ))
+                .toList(),
+          ),
+          new Padding(
+            padding: new EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: new TextField(
+              obscureText: true,
+              decoration: new InputDecoration(
+                  labelText: "League password", icon: new Icon(Icons.lock)),
+              controller: _passwordController,
+            ),
+          ),
+          new Padding(
+            padding: new EdgeInsets.all(16.0),
+            child: new RaisedButton(
+              color: Theme
+                  .of(context)
+                  .primaryColor,
+              onPressed: null,
+              child: new Text(
+                "JOIN LEAGUE",
+                style: Theme
+                    .of(context)
+                    .textTheme
+                    .subhead
+                    .copyWith(color: Colors.white),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
   }
 
   Widget _leagueSearchWidget(BuildContext context, ViewModel vm) {
