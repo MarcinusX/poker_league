@@ -17,7 +17,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  final Store store = new Store(
+  final Store store = new Store<ReduxState>(
     reduce,
     initialState: new ReduxState(),
     middleware: middleware.createMiddleware(

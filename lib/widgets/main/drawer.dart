@@ -36,7 +36,7 @@ class MyDrawer extends StatelessWidget {
   ];
 
   final ListItem leaguesItem = new ListItem(
-      page: MainPageState.LEAGUES, name: "Leagues", icon: Icons.whatshot);
+      page: MainPageState.LEAGUES, name: "My leagues", icon: Icons.group_work);
 
   Widget _mapListItemToWidget(BuildContext context, ViewModel viewModel,
       ListItem item) {

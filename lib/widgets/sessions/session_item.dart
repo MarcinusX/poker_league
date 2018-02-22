@@ -27,13 +27,14 @@ class SessionItem extends StatelessWidget {
       trailing: (session.isFinished
           ? new BalanceIcon(balance)
           : new Column(children: [
-        new Icon(Icons.whatshot),
+        new Icon(Icons.whatshot, color: Colors.orange,),
         new Text(
-          "Session in on",
+          "Session is ON",
           style: Theme
               .of(context)
               .textTheme
-              .caption,
+              .caption
+              .copyWith(color: Colors.orange),
         )
       ])
       ),
@@ -60,7 +61,7 @@ class BalanceIcon extends StatelessWidget {
       iconData = Icons.trending_up;
     } else if (balance == 0) {
       sign = "";
-      color = Colors.grey;
+      color = Colors.blue;
       iconData = Icons.trending_flat;
     } else {
       sign = "";

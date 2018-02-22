@@ -36,7 +36,7 @@ class NumericSlider extends StatelessWidget {
                     onPressed: () {
                       TextEditingController _controller =
                       new TextEditingController(text: value.toString());
-                      showDialog(
+                      showDialog<int>(
                           context: context,
                           child: new AlertDialog(
                             content: new TextField(

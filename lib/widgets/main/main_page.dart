@@ -44,7 +44,7 @@ class MainPage extends StatelessWidget {
     } else if (page == MainPageState.PLAYERS) {
       return "Players";
     } else if (page == MainPageState.LEAGUES) {
-      return "Leagues";
+      return "My leagues";
     } else {
       return "Poker League";
     }
