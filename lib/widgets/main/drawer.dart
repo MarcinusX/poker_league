@@ -1,29 +1,34 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:meta/meta.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 
+@immutable
 class ViewModel {
+  final String currentLeagueName;
   final MainPageState mainPageState;
   final Function(MainPageState) changePage;
   final FirebaseUser firebaseUser;
   final Function() logout;
 
   ViewModel({
-    this.mainPageState,
-    this.changePage,
-    this.firebaseUser,
-    this.logout,
+    @required this.currentLeagueName,
+    @required this.mainPageState,
+    @required this.changePage,
+    @required this.firebaseUser,
+    @required this.logout,
   });
 }
 
 class ListItem {
   final MainPageState page;
   final String name;
+  String subName;
   final IconData icon;
 
-  ListItem({this.page, this.name, this.icon});
+  ListItem({this.page, this.name, this.subName, this.icon});
 }
 
 class MyDrawer extends StatelessWidget {
@@ -46,8 +51,18 @@ class MyDrawer extends StatelessWidget {
       item.name,
       style: Theme.of(context).textTheme.body2.copyWith(color: color),
     );
+    Text subTitle = item.subName == null
+        ? null
+        : new Text(
+      "Current league: " + item.subName,
+      style: Theme
+          .of(context)
+          .textTheme
+          .caption,
+    );
     return new ListTile(
         title: text,
+        subtitle: subTitle,
         leading: new Icon(
           item.icon,
           color: color,
@@ -63,9 +78,11 @@ class MyDrawer extends StatelessWidget {
     return new StoreConnector<ReduxState, ViewModel>(
       converter: (store) {
         return new ViewModel(
+          currentLeagueName: store.state.activeLeagueName,
           firebaseUser: store.state.firebaseUser,
           mainPageState: store.state.mainPageState,
           changePage: (state) => store.dispatch(new ChangeMainPage(state)),
+          logout: () => null,
         );
       },
       builder: (context, viewModel) {
@@ -123,8 +140,8 @@ class MyDrawer extends StatelessWidget {
             ]
               ..addAll(items.map(
                       (item) => _mapListItemToWidget(context, viewModel, item)))
-              ..add(new Divider())..add(
-                  _mapListItemToWidget(context, viewModel, leaguesItem)),
+              ..add(new Divider())..add(_mapListItemToWidget(context, viewModel,
+                  leaguesItem..subName = viewModel.currentLeagueName)),
           ),
         );
       },

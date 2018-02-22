@@ -4,19 +4,24 @@ import 'package:meta/meta.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/league.dart';
+import 'package:poker_league/models/player.dart';
 
 @immutable
 class ViewModel {
   final String leagueName;
   final League league;
   final bool isLeagueValid;
+  final Player currentPlayer;
 
   final Function(String) findLeague;
 
-  ViewModel({@required this.leagueName,
+  ViewModel({
+    @required this.leagueName,
     @required this.league,
     @required this.isLeagueValid,
-    @required this.findLeague});
+    @required this.findLeague,
+    @required this.currentPlayer,
+  });
 }
 
 class JoinLeaguePage extends StatefulWidget {
@@ -38,6 +43,7 @@ class JoinLeaguePageState extends State<JoinLeaguePage> {
           leagueName: store.state.joinLeaguePageState.chosenLeagueName,
           league: store.state.joinLeaguePageState.league,
           isLeagueValid: store.state.joinLeaguePageState.isLeagueValidated,
+          currentPlayer: store.state.currentPlayer,
           findLeague: (name) =>
               store.dispatch(new FindLeagueToJoinAction(name)),
         );
@@ -107,6 +113,28 @@ class JoinLeaguePageState extends State<JoinLeaguePage> {
             ))
                 .toList(),
           ),
+          _inputPasswordWidget(context, vm),
+        ],
+      ),
+    );
+  }
+
+  Widget _inputPasswordWidget(BuildContext context, ViewModel vm) {
+    if (vm.league.players.any((p) => p.key == vm.currentPlayer?.key)) {
+      return new Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: new Text(
+          "You are already a member of this league.",
+          style: Theme
+              .of(context)
+              .textTheme
+              .subhead
+              .copyWith(color: Colors.red),
+        ),
+      );
+    } else {
+      return new Column(
+        children: <Widget>[
           new Padding(
             padding: new EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: new TextField(
@@ -134,8 +162,8 @@ class JoinLeaguePageState extends State<JoinLeaguePage> {
             ),
           )
         ],
-      ),
-    );
+      );
+    }
   }
 
   Widget _leagueSearchWidget(BuildContext context, ViewModel vm) {
