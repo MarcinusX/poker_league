@@ -3,6 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:poker_league/models/session.dart';
 
 class BuyInDialog extends StatefulWidget {
+  final BuyIn buyInToEdit;
+
+  BuyInDialog() : buyInToEdit = null;
+
+  BuyInDialog.edit(this.buyInToEdit);
+
   @override
   State<StatefulWidget> createState() {
     return new BuyInDialogState();
@@ -12,6 +18,13 @@ class BuyInDialog extends StatefulWidget {
 class BuyInDialogState extends State<BuyInDialog> {
   bool _isCash = true;
   int _value = 20;
+
+  @override
+  void initState() {
+    super.initState();
+    _isCash = widget.buyInToEdit?.isCash ?? true;
+    _value = widget.buyInToEdit?.value ?? 20;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,9 +63,14 @@ class BuyInDialogState extends State<BuyInDialog> {
             onPressed: () => Navigator.of(context).pop(),
             child: new Text("CANCEL")),
         new FlatButton(
-            onPressed: () => Navigator
-                .of(context)
-                .pop(new BuyIn(_value, new DateTime.now(), isCash: _isCash)),
+            onPressed: () {
+              DateTime dateTime =
+                  widget.buyInToEdit?.dateTime ?? new DateTime.now();
+              String key = widget.buyInToEdit?.key;
+              Navigator
+                  .of(context)
+                  .pop(new BuyIn(_value, dateTime, isCash: _isCash, key: key));
+            },
             child: new Text("BUY IN"))
       ],
     );

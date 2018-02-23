@@ -100,6 +100,13 @@ class DoBuyIn {
   DoBuyIn(this.player, this.buyIn);
 }
 
+class UpdateBuyInAction {
+  final Player player;
+  final BuyIn newBuyIn;
+
+  UpdateBuyInAction(this.player, this.newBuyIn);
+}
+
 class DoCheckout {
   final Player player;
   final int checkout;

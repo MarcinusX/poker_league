@@ -40,6 +40,7 @@ List<Middleware<ReduxState>> createMiddleware({
   final finishSession = _createFinishSession(database);
   final findLeagueName = _createFindLeagueName(database);
   final tryJoiningLeague = _createTryJoiningLeague(database);
+  final editBuyIn = _createEditBuyIn(database);
   return combineTypedMiddleware([
     new MiddlewareBinding<ReduxState, DoLogIn>(logIn),
     new MiddlewareBinding<ReduxState, OnLoggedInSuccessful>(onLoginSuccess),
@@ -60,7 +61,23 @@ List<Middleware<ReduxState>> createMiddleware({
     new MiddlewareBinding<ReduxState, EndSessionAction>(finishSession),
     new MiddlewareBinding<ReduxState, FindLeagueToJoinAction>(findLeagueName),
     new MiddlewareBinding<ReduxState, TryJoiningLeagueAction>(tryJoiningLeague),
+    new MiddlewareBinding<ReduxState, UpdateBuyInAction>(editBuyIn),
   ]);
+}
+
+_createEditBuyIn(FirebaseDatabase database) {
+  return (Store<ReduxState> store, UpdateBuyInAction action,
+      NextDispatcher next) {
+    String leagueName = store.state.activeLeagueName;
+    String sessionKey = store.state.activeSession.key;
+    String playerKey = action.player.key;
+    String buyInKey = action.newBuyIn.key;
+    database
+        .reference()
+        .child("$LEAGUES/$leagueName/$SESSIONS/$sessionKey/"
+        "$PLAYER_SESSIONS/$playerKey/$BUYINS/$buyInKey")
+        .set(action.newBuyIn.toJson());
+  };
 }
 
 _createTryJoiningLeague(FirebaseDatabase database) {
