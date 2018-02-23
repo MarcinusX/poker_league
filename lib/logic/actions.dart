@@ -74,8 +74,9 @@ class CreateLeagueAction {
 
 class AddPlayerToLeague {
   final Player player;
+  final String leagueName;
 
-  AddPlayerToLeague(this.player);
+  AddPlayerToLeague(this.player, this.leagueName);
 }
 
 // ===== SESSION =====
@@ -142,4 +143,14 @@ class OnFindLeagueResultAction {
 }
 
 class PrepareJoinLeaguePageAction {
+}
+
+class TryJoiningLeagueAction {
+  final League league;
+  final String password;
+
+  TryJoiningLeagueAction(this.league, this.password);
+}
+
+class OnJoiningLeagueFailedAction {
 }

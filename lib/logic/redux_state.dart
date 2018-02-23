@@ -50,7 +50,7 @@ class ReduxState {
   }
 
   Player get currentPlayer =>
-      activeLeague?.players?.singleWhere((p) => p?.uid == firebaseUser.uid);
+      activeLeague?.players?.firstWhere((p) => p?.uid == firebaseUser.uid);
 }
 
 @immutable
@@ -77,22 +77,26 @@ class SessionPageState {
 class JoinLeaguePageState {
   final String chosenLeagueName;
   final bool isLeagueValidated;
+  final bool didPasswordFail;
   final League league;
 
   const JoinLeaguePageState({
     this.chosenLeagueName,
     this.isLeagueValidated,
+    this.didPasswordFail,
     this.league,
   });
 
   JoinLeaguePageState copyWith({
     String chosenLeagueName,
     bool isLeagueValidated,
+    bool didPasswordFail,
     League league,
   }) {
     return new JoinLeaguePageState(
         chosenLeagueName: chosenLeagueName ?? this.chosenLeagueName,
         isLeagueValidated: isLeagueValidated ?? this.isLeagueValidated,
+        didPasswordFail: didPasswordFail ?? this.didPasswordFail,
         league: league ?? this.league);
   }
 }

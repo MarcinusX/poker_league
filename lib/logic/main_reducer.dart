@@ -41,10 +41,13 @@ JoinLeaguePageState reduceJoinPageState(ReduxState state, action) {
     return new JoinLeaguePageState(
       chosenLeagueName: action.requestedLeagueName,
       isLeagueValidated: action.league != null,
+      didPasswordFail: null,
       league: action.league,
     );
   } else if (action is PrepareJoinLeaguePageAction) {
     return new JoinLeaguePageState();
+  } else if (action is OnJoiningLeagueFailedAction) {
+    return state.joinLeaguePageState.copyWith(didPasswordFail: true);
   }
   return state.joinLeaguePageState;
 }

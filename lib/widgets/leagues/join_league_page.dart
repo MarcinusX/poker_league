@@ -4,23 +4,26 @@ import 'package:meta/meta.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:poker_league/models/league.dart';
-import 'package:poker_league/models/player.dart';
 
 @immutable
 class ViewModel {
   final String leagueName;
   final League league;
   final bool isLeagueValid;
-  final Player currentPlayer;
+  final bool didPasswordFail;
+  final String currentPlayerUid;
 
   final Function(String) findLeague;
+  final Function(String, League) tryJoiningLeague;
 
   ViewModel({
     @required this.leagueName,
     @required this.league,
     @required this.isLeagueValid,
     @required this.findLeague,
-    @required this.currentPlayer,
+    @required this.currentPlayerUid,
+    @required this.tryJoiningLeague,
+    @required this.didPasswordFail,
   });
 }
 
@@ -43,9 +46,12 @@ class JoinLeaguePageState extends State<JoinLeaguePage> {
           leagueName: store.state.joinLeaguePageState.chosenLeagueName,
           league: store.state.joinLeaguePageState.league,
           isLeagueValid: store.state.joinLeaguePageState.isLeagueValidated,
-          currentPlayer: store.state.currentPlayer,
-          findLeague: (name) =>
-              store.dispatch(new FindLeagueToJoinAction(name)),
+          currentPlayerUid: store.state.firebaseUser.uid,
+          didPasswordFail: store.state.joinLeaguePageState.didPasswordFail,
+          findLeague: (leagueName) =>
+              store.dispatch(new FindLeagueToJoinAction(leagueName)),
+          tryJoiningLeague: (password, league) =>
+              store.dispatch(new TryJoiningLeagueAction(league, password)),
         );
       },
       onInit: (store) {
@@ -109,7 +115,11 @@ class JoinLeaguePageState extends State<JoinLeaguePage> {
                   .of(context)
                   .textTheme
                   .body1
-                  .copyWith(color: Colors.grey),
+                  .copyWith(
+                  color: Colors.grey,
+                  fontWeight: p.uid == vm.currentPlayerUid
+                      ? FontWeight.bold
+                      : FontWeight.normal),
             ))
                 .toList(),
           ),
@@ -120,16 +130,17 @@ class JoinLeaguePageState extends State<JoinLeaguePage> {
   }
 
   Widget _inputPasswordWidget(BuildContext context, ViewModel vm) {
-    if (vm.league.players.any((p) => p.key == vm.currentPlayer?.key)) {
+    if (vm.league.players.any((p) => p.uid == vm.currentPlayerUid)) {
       return new Padding(
         padding: const EdgeInsets.all(16.0),
         child: new Text(
-          "You are already a member of this league.",
-          style: Theme
+          "You are a member of this league.",
+          style:
+          Theme
               .of(context)
               .textTheme
               .subhead
-              .copyWith(color: Colors.red),
+              .copyWith(color: Colors.green),
         ),
       );
     } else {
@@ -140,7 +151,11 @@ class JoinLeaguePageState extends State<JoinLeaguePage> {
             child: new TextField(
               obscureText: true,
               decoration: new InputDecoration(
-                  labelText: "League password", icon: new Icon(Icons.lock)),
+                  labelText: "League password",
+                  icon: new Icon(Icons.lock),
+                  errorText: (vm.didPasswordFail ?? false)
+                      ? "Incorrect password"
+                      : null),
               controller: _passwordController,
             ),
           ),
@@ -150,7 +165,9 @@ class JoinLeaguePageState extends State<JoinLeaguePage> {
               color: Theme
                   .of(context)
                   .primaryColor,
-              onPressed: null,
+              onPressed: () {
+                vm.tryJoiningLeague(_passwordController.text, vm.league);
+              },
               child: new Text(
                 "JOIN LEAGUE",
                 style: Theme

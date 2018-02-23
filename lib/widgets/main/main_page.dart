@@ -83,7 +83,8 @@ class MainPage extends StatelessWidget {
           playerDialog.openNewPlayerDialog(context).then((String name) {
             if (name != null) {
               Player player = new Player(name: name);
-              store.dispatch(new AddPlayerToLeague(player));
+              store.dispatch(
+                  new AddPlayerToLeague(player, store.state.activeLeagueName));
             }
           });
         },
