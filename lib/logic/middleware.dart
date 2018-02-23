@@ -41,6 +41,7 @@ List<Middleware<ReduxState>> createMiddleware({
   final findLeagueName = _createFindLeagueName(database);
   final tryJoiningLeague = _createTryJoiningLeague(database);
   final editBuyIn = _createEditBuyIn(database);
+  final logout = _createLogout(googleSignIn, firebaseAuth);
   return combineTypedMiddleware([
     new MiddlewareBinding<ReduxState, DoLogIn>(logIn),
     new MiddlewareBinding<ReduxState, OnLoggedInSuccessful>(onLoginSuccess),
@@ -62,7 +63,20 @@ List<Middleware<ReduxState>> createMiddleware({
     new MiddlewareBinding<ReduxState, FindLeagueToJoinAction>(findLeagueName),
     new MiddlewareBinding<ReduxState, TryJoiningLeagueAction>(tryJoiningLeague),
     new MiddlewareBinding<ReduxState, UpdateBuyInAction>(editBuyIn),
+    new MiddlewareBinding<ReduxState, SignOutAction>(logout),
   ]);
+}
+
+_createLogout(GoogleSignIn googleSignIn, FirebaseAuth firebaseAuth) {
+  return (Store<ReduxState> store, SignOutAction action, NextDispatcher next) {
+    Future.wait([
+      googleSignIn.signOut(),
+      firebaseAuth.signOut(),
+    ]).then((_) =>
+    new Future.delayed(new Duration(milliseconds: 300),
+            () => store.dispatch(new OnSignedOutAction())));
+    next(action);
+  };
 }
 
 _createEditBuyIn(FirebaseDatabase database) {
@@ -84,9 +98,11 @@ _createTryJoiningLeague(FirebaseDatabase database) {
   return (Store<ReduxState> store, TryJoiningLeagueAction action,
       NextDispatcher next) {
     if (action.password == action.league.password) {
-      store.dispatch(new AddPlayerToLeague(new Player(
-          uid: store.state.firebaseUser.uid,
-          name: store.state.firebaseUser.displayName), action.league.name));
+      store.dispatch(new AddPlayerToLeague(
+          new Player(
+              uid: store.state.firebaseUser.uid,
+              name: store.state.firebaseUser.displayName),
+          action.league.name));
       store.dispatch(new FindLeagueToJoinAction(action.league.name));
     } else {
       store.dispatch(new OnJoiningLeagueFailedAction());
@@ -157,8 +173,8 @@ _createAddPlayerToSession(FirebaseDatabase database) {
 _createAddPlayerToLeague(FirebaseDatabase database) {
   return (Store<ReduxState> store, AddPlayerToLeague action,
       NextDispatcher next) {
-    _addPlayerToLeague(database, action.player, action.leagueName).then((
-        leagueName) {
+    _addPlayerToLeague(database, action.player, action.leagueName)
+        .then((leagueName) {
       if (action.player.uid != null) {
         //it means that you are using your own account
         store.dispatch(new SetActiveLeagueAction(leagueName));
@@ -336,7 +352,7 @@ _createOnLogInSuccess(FirebaseDatabase database) {
         .onChildAdded
         .listen((event) =>
         store.dispatch(new LeagueAddedToUser(event.snapshot.key)));
-
+    store.dispatch(new LoadActiveLeagueNameFromSP());
     next(action);
   };
 }

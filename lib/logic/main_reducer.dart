@@ -20,7 +20,8 @@ ReduxState reduce(ReduxState state, action) {
   } else if (action is ChooseSession) {
     newState = state.copyWith(activeSession: action.session);
   } else if (action is OnLoggedInSuccessful) {
-    newState = state.copyWith(firebaseUser: action.firebaseUser);
+    newState =
+        state.copyWith(firebaseUser: action.firebaseUser, shouldLogIn: true);
   } else if (action is LeagueAddedToUser) {
     if (!state.availableLeagueNames.contains(action.leagueName)) {
       newState = state.copyWith(
@@ -28,6 +29,14 @@ ReduxState reduce(ReduxState state, action) {
           ..add(action.leagueName),
       );
     }
+  } else if (action is OnSignedOutAction) {
+    newState = new ReduxState();
+  } else if (action is OnMovedFromLoginPageAction) {
+    newState = state.copyWith(shouldLogIn: false);
+  } else if (action is SignOutAction) {
+    newState = newState.copyWith(shouldSignOut: false);
+  } else if (action is ScheduleSignOutAction) {
+    newState = newState.copyWith(shouldSignOut: true);
   }
   newState = newState.copyWith(
     sessionPageState: reduceSessionPageState(state, action),

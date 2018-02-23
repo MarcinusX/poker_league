@@ -16,6 +16,10 @@ class ReduxState {
   final String activeLeagueName;
   final List<String> availableLeagueNames;
 
+  //animation flags
+  final bool shouldSignOut;
+  final bool shouldLogIn;
+
   ReduxState({
     this.mainPageState = MainPageState.HOME,
     this.sessionPageState = const SessionPageState(),
@@ -25,6 +29,8 @@ class ReduxState {
     this.availableLeagueNames = const [],
     this.activeLeagueName,
     this.joinLeaguePageState = const JoinLeaguePageState(),
+    this.shouldLogIn,
+    this.shouldSignOut,
   });
 
   ReduxState copyWith({
@@ -36,6 +42,8 @@ class ReduxState {
     List<String> availableLeagueNames,
     String activeLeagueName,
     JoinLeaguePageState joinLeaguePageState,
+    bool shouldLogIn,
+    bool shouldSignOut,
   }) {
     return new ReduxState(
       mainPageState: mainPageState ?? this.mainPageState,
@@ -46,6 +54,8 @@ class ReduxState {
       availableLeagueNames: availableLeagueNames ?? this.availableLeagueNames,
       activeLeagueName: activeLeagueName ?? this.activeLeagueName,
       joinLeaguePageState: joinLeaguePageState ?? this.joinLeaguePageState,
+      shouldLogIn: shouldLogIn ?? this.shouldLogIn,
+      shouldSignOut: shouldSignOut ?? this.shouldSignOut,
     );
   }
 

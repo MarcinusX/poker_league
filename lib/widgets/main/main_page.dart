@@ -22,12 +22,15 @@ class ViewModel {
   final Function(MainPageState) changePage;
   final Function(BuildContext) openNewSessionDialog;
   final Function(BuildContext) openNewPlayerDialog;
+  final bool shouldGoToLoginPage;
 
   ViewModel({
     @required this.mainPageState,
     @required this.changePage,
     @required this.openNewPlayerDialog,
-    @required this.openNewSessionDialog,});
+    @required this.openNewSessionDialog,
+    @required this.shouldGoToLoginPage,
+  });
 }
 
 final Map<MainPageState, Widget> pages = {
@@ -75,59 +78,67 @@ class MainPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new StoreConnector<ReduxState, ViewModel>(converter: (store) {
-      return new ViewModel(
-        mainPageState: store.state.mainPageState,
-        changePage: (state) => store.dispatch(new ChangeMainPage(state)),
-        openNewPlayerDialog: (context) {
-          playerDialog.openNewPlayerDialog(context).then((String name) {
-            if (name != null) {
-              Player player = new Player(name: name);
-              store.dispatch(
-                  new AddPlayerToLeague(player, store.state.activeLeagueName));
-            }
-          });
-        },
-        openNewSessionDialog: (context) {
-          _openNewSessionDialog(
-              context, store.state?.activeLeague?.players ?? [])
-              .then((Session session) {
-            if (session != null) {
-              store.dispatch(new AddSession(session));
-            }
-          });
-        },
-      );
-    }, builder: (context, viewModel) {
-      return new Scaffold(
-        appBar: new AppBar(
-          title: new Text(_initTitle(viewModel.mainPageState)),
-        ),
-        drawer: new MyDrawer(),
-        body: new Stack(
-          children: <Widget>[
-            new Offstage(
-              offstage: viewModel.mainPageState != MainPageState.HOME,
-              child: pages[MainPageState.HOME],
-            ),
-            new Offstage(
-              offstage: viewModel.mainPageState != MainPageState.SESSIONS,
-              child: pages[MainPageState.SESSIONS],
-            ),
-            new Offstage(
-              offstage: viewModel.mainPageState != MainPageState.PLAYERS,
-              child: pages[MainPageState.PLAYERS],
-            ),
-            new Offstage(
-              offstage: viewModel.mainPageState != MainPageState.LEAGUES,
-              child: pages[MainPageState.LEAGUES],
-            ),
-          ],
-        ),
-        floatingActionButton:
-        _initFab(context, viewModel.mainPageState, viewModel),
-      );
-    });
+    return new StoreConnector<ReduxState, ViewModel>(
+      converter: (store) {
+        return new ViewModel(
+          mainPageState: store.state.mainPageState,
+          shouldGoToLoginPage: store.state.shouldSignOut ?? false,
+          changePage: (state) => store.dispatch(new ChangeMainPage(state)),
+          openNewPlayerDialog: (context) {
+            playerDialog.openNewPlayerDialog(context).then((String name) {
+              if (name != null) {
+                Player player = new Player(name: name);
+                store.dispatch(new AddPlayerToLeague(
+                    player, store.state.activeLeagueName));
+              }
+            });
+          },
+          openNewSessionDialog: (context) {
+            _openNewSessionDialog(
+                context, store.state?.activeLeague?.players ?? [])
+                .then((Session session) {
+              if (session != null) {
+                store.dispatch(new AddSession(session));
+              }
+            });
+          },
+        );
+      },
+      builder: (context, viewModel) {
+        if (viewModel.shouldGoToLoginPage) {
+          new Future.delayed(Duration.ZERO,
+                  () => Navigator.pushReplacementNamed(context, "Login"));
+        }
+        return new Scaffold(
+          appBar: new AppBar(
+            title: new Text(_initTitle(viewModel.mainPageState)),
+          ),
+          drawer: new MyDrawer(),
+          body: new Stack(
+            children: <Widget>[
+              new Offstage(
+                offstage: viewModel.mainPageState != MainPageState.HOME,
+                child: pages[MainPageState.HOME],
+              ),
+              new Offstage(
+                offstage: viewModel.mainPageState != MainPageState.SESSIONS,
+                child: pages[MainPageState.SESSIONS],
+              ),
+              new Offstage(
+                offstage: viewModel.mainPageState != MainPageState.PLAYERS,
+                child: pages[MainPageState.PLAYERS],
+              ),
+              new Offstage(
+                offstage: viewModel.mainPageState != MainPageState.LEAGUES,
+                child: pages[MainPageState.LEAGUES],
+              ),
+            ],
+          ),
+          floatingActionButton:
+          _initFab(context, viewModel.mainPageState, viewModel),
+        );
+      },
+    );
   }
 }
 

@@ -35,11 +35,25 @@ class OnLoggedInSuccessful {
   OnLoggedInSuccessful(this.firebaseUser);
 }
 
+class OnMovedFromLoginPageAction {
+}
+
 class LeagueAddedToUser {
   final String leagueName;
 
   LeagueAddedToUser(this.leagueName);
 }
+
+//use this from drawer, because we cant do proper signout if we are still logged in
+class ScheduleSignOutAction {
+}
+
+//use this in login page
+class SignOutAction {}
+
+class OnSignedOutAction {
+}
+
 
 // ===== ACTIVE LEAGUE NAME =====
 

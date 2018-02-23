@@ -2,14 +2,24 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:meta/meta.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 
 class LoginPageViewModel {
   final Function() loginWithGoogle;
-  final bool hasFirebaseUser;
+  final Function() onMovedFromLoginPage;
+  final Function() signOut;
+  final bool shouldLogIn;
+  final bool shouldSignOut;
 
-  LoginPageViewModel({this.loginWithGoogle, this.hasFirebaseUser});
+  LoginPageViewModel({
+    @required this.loginWithGoogle,
+    @required this.shouldLogIn,
+    @required this.onMovedFromLoginPage,
+    @required this.shouldSignOut,
+    @required this.signOut,
+  });
 }
 
 class LoginPage extends StatelessWidget {
@@ -18,23 +28,29 @@ class LoginPage extends StatelessWidget {
     return new StoreConnector<ReduxState, LoginPageViewModel>(
       converter: (store) {
         return new LoginPageViewModel(
+          signOut: () => store.dispatch(new SignOutAction()),
           loginWithGoogle: () => store.dispatch(new DoLogIn()),
-          hasFirebaseUser: store.state.firebaseUser != null,
+          onMovedFromLoginPage: () =>
+              store.dispatch(new OnMovedFromLoginPageAction()),
+          shouldLogIn: store.state.shouldLogIn ?? false,
+          shouldSignOut: store.state.shouldSignOut ?? false,
         );
       },
       builder: (BuildContext buildContext, LoginPageViewModel viewModel) {
-        if (viewModel.hasFirebaseUser) {
-          new Future.delayed(Duration.ZERO,
-              () => Navigator.pushReplacementNamed(buildContext, "Main"));
+        if (viewModel.shouldSignOut) {
+          new Future.delayed(Duration.ZERO, () {
+            viewModel.signOut();
+          });
+        } else if (viewModel.shouldLogIn) {
+          new Future.delayed(Duration.ZERO, () {
+            Navigator.pushReplacementNamed(buildContext, "Main");
+            viewModel.onMovedFromLoginPage();
+          });
         }
         return new Scaffold(
           body: new Stack(
             fit: StackFit.expand,
             children: <Widget>[
-//              new Image.asset(
-//                'assets/poker_case.jpg',
-//                fit: BoxFit.cover,
-//              ),
               new Center(
                 child: new Column(
                   mainAxisSize: MainAxisSize.min,

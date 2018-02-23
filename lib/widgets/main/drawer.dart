@@ -43,36 +43,6 @@ class MyDrawer extends StatelessWidget {
   final ListItem leaguesItem = new ListItem(
       page: MainPageState.LEAGUES, name: "My leagues", icon: Icons.group_work);
 
-  Widget _mapListItemToWidget(BuildContext context, ViewModel viewModel,
-      ListItem item) {
-    Color color =
-    (viewModel.mainPageState == item.page) ? Colors.blue : Colors.black;
-    Text text = new Text(
-      item.name,
-      style: Theme.of(context).textTheme.body2.copyWith(color: color),
-    );
-    Text subTitle = item.subName == null
-        ? null
-        : new Text(
-      "Current league: " + item.subName,
-      style: Theme
-          .of(context)
-          .textTheme
-          .caption,
-    );
-    return new ListTile(
-        title: text,
-        subtitle: subTitle,
-        leading: new Icon(
-          item.icon,
-          color: color,
-        ),
-        onTap: () {
-          viewModel.changePage(item.page);
-          Navigator.pop(context);
-        });
-  }
-
   @override
   Widget build(BuildContext context) {
     return new StoreConnector<ReduxState, ViewModel>(
@@ -82,7 +52,7 @@ class MyDrawer extends StatelessWidget {
           firebaseUser: store.state.firebaseUser,
           mainPageState: store.state.mainPageState,
           changePage: (state) => store.dispatch(new ChangeMainPage(state)),
-          logout: () => null,
+          logout: () => store.dispatch(new ScheduleSignOutAction()),
         );
       },
       builder: (context, viewModel) {
@@ -141,10 +111,65 @@ class MyDrawer extends StatelessWidget {
               ..addAll(items.map(
                       (item) => _mapListItemToWidget(context, viewModel, item)))
               ..add(new Divider())..add(_mapListItemToWidget(context, viewModel,
-                  leaguesItem..subName = viewModel.currentLeagueName)),
+                  leaguesItem..subName = viewModel.currentLeagueName))..add(
+                  new Divider())..add(
+                new ListTile(
+                  dense: true,
+                  onTap: () {
+//                    Navigator.pushReplacementNamed(context, "Login").then((_) => viewModel.logout());
+                    viewModel.logout();
+                  },
+                  leading: new Icon(
+                    Icons.power_settings_new,
+                    color: Colors.black,
+                  ),
+                  title: new Text(
+                    "Sign out",
+                    style: Theme
+                        .of(context)
+                        .textTheme
+                        .body2,
+                  ),
+                ),
+              ),
           ),
         );
       },
     );
+  }
+
+  Widget _mapListItemToWidget(BuildContext context, ViewModel viewModel,
+      ListItem item) {
+    Color color =
+    (viewModel.mainPageState == item.page) ? Colors.blue : Colors.black;
+    Text text = new Text(
+      item.name,
+      style: Theme
+          .of(context)
+          .textTheme
+          .body2
+          .copyWith(color: color),
+    );
+    Text subTitle = item.subName == null
+        ? null
+        : new Text(
+      "Current league: " + item.subName,
+      style: Theme
+          .of(context)
+          .textTheme
+          .caption,
+    );
+    return new ListTile(
+        dense: true,
+        title: text,
+        subtitle: subTitle,
+        leading: new Icon(
+          item.icon,
+          color: color,
+        ),
+        onTap: () {
+          viewModel.changePage(item.page);
+          Navigator.pop(context);
+        });
   }
 }
