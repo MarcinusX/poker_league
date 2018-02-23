@@ -32,28 +32,27 @@ class LeaguesPage extends StatelessWidget {
             child: new Text("Emptyy"),
           );
         } else {
-          return new ListView.builder(
-            itemCount: vm.availableLeagueNames.length,
-            itemExtent: 50.0,
-            itemBuilder: (context, index) {
-              return new ListTile(
+          return new ListView(
+            children: vm.availableLeagueNames.map((name) {
+              return new RadioListTile(
+                value: name,
+                groupValue: vm.activeLeagueName,
                 title: new Text(
-                  vm.availableLeagueNames[index],
+                  name,
                   style: Theme
                       .of(context)
                       .textTheme
                       .subhead
                       .copyWith(
-                      fontWeight: vm.availableLeagueNames[index] ==
-                          vm.activeLeagueName
+                      fontWeight: name == vm.activeLeagueName
                           ? FontWeight.bold
                           : FontWeight.normal),
                 ),
-                onTap: () =>
-                    vm
-                        .onLeagueChosen(vm.availableLeagueNames[index]),
+                subtitle: name == vm.activeLeagueName ? new Text(
+                    "Current league") : null,
+                onChanged: (val) => vm.onLeagueChosen(val),
               );
-            },
+            }).toList(),
           );
         }
       },

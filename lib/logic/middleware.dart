@@ -38,6 +38,8 @@ List<Middleware<ReduxState>> createMiddleware({
   final addPlayerToSession = _createAddPlayerToSession(database);
   final removePlayerFromSession = _createRemovePlayerFromSession(database);
   final finishSession = _createFinishSession(database);
+  final findLeagueName = _createFindLeagueName(database);
+  final tryJoiningLeague = _createTryJoiningLeague(database);
   return combineTypedMiddleware([
     new MiddlewareBinding<ReduxState, DoLogIn>(logIn),
     new MiddlewareBinding<ReduxState, OnLoggedInSuccessful>(onLoginSuccess),
@@ -55,8 +57,43 @@ List<Middleware<ReduxState>> createMiddleware({
     new MiddlewareBinding<ReduxState, AddPlayerToSession>(addPlayerToSession),
     new MiddlewareBinding<ReduxState, RemovePlayerFromSession>(
         removePlayerFromSession),
-    new MiddlewareBinding<ReduxState, EndSessionAction>(finishSession)
+    new MiddlewareBinding<ReduxState, EndSessionAction>(finishSession),
+    new MiddlewareBinding<ReduxState, FindLeagueToJoinAction>(findLeagueName),
+    new MiddlewareBinding<ReduxState, TryJoiningLeagueAction>(tryJoiningLeague),
   ]);
+}
+
+_createTryJoiningLeague(FirebaseDatabase database) {
+  return (Store<ReduxState> store, TryJoiningLeagueAction action,
+      NextDispatcher next) {
+    if (action.password == action.league.password) {
+      store.dispatch(new AddPlayerToLeague(new Player(
+          uid: store.state.firebaseUser.uid,
+          name: store.state.firebaseUser.displayName), action.league.name));
+      store.dispatch(new FindLeagueToJoinAction(action.league.name));
+    } else {
+      store.dispatch(new OnJoiningLeagueFailedAction());
+    }
+  };
+}
+
+_createFindLeagueName(FirebaseDatabase database) {
+  return (Store<ReduxState> store, FindLeagueToJoinAction action,
+      NextDispatcher next) {
+    String leagueName = action.leagueName;
+    database
+        .reference()
+        .child("$LEAGUES/$leagueName")
+        .once()
+        .then((DataSnapshot dataSnapshot) {
+      if (dataSnapshot.value == null) {
+        store.dispatch(new OnFindLeagueResultAction(leagueName, null));
+      } else {
+        store.dispatch(new OnFindLeagueResultAction(
+            leagueName, new League.fromMap(dataSnapshot.value)));
+      }
+    });
+  };
 }
 
 _createFinishSession(FirebaseDatabase database) {
@@ -103,13 +140,32 @@ _createAddPlayerToSession(FirebaseDatabase database) {
 _createAddPlayerToLeague(FirebaseDatabase database) {
   return (Store<ReduxState> store, AddPlayerToLeague action,
       NextDispatcher next) {
-    String activeLeagueName = store.state.activeLeagueName;
-    database
-        .reference()
-        .child("$LEAGUES/$activeLeagueName/$LEAGUES_PLAYERS")
-        .push()
-        .set(action.player.toJson());
+    _addPlayerToLeague(database, action.player, action.leagueName).then((
+        leagueName) {
+      if (action.player.uid != null) {
+        //it means that you are using your own account
+        store.dispatch(new SetActiveLeagueAction(leagueName));
+      }
+    });
+    next(action);
   };
+}
+
+Future<String> _addPlayerToLeague(FirebaseDatabase database, Player player,
+    String leagueName) async {
+  await database
+      .reference()
+      .child("$LEAGUES/$leagueName/$LEAGUES_PLAYERS")
+      .push()
+      .set(player.toJson());
+  if (player.uid != null) {
+    String playerUid = player.uid;
+    await database
+        .reference()
+        .child("$PLAYERS/$playerUid/$LEAGUES_IN_PLAYER/$leagueName")
+        .set(leagueName);
+  }
+  return leagueName;
 }
 
 _createBuyIn(FirebaseDatabase database) {
@@ -218,15 +274,8 @@ Future _addLeague(FirebaseDatabase database, String userUid, String displayName,
       .reference()
       .child("$LEAGUES/$leagueName")
       .set(action.league.toJson());
-  await database
-      .reference()
-      .child("$LEAGUES/$leagueName/$LEAGUES_PLAYERS")
-      .push()
-      .set(new Player(uid: userUid, name: displayName).toJson());
-  await database
-      .reference()
-      .child("$PLAYERS/$userUid/$LEAGUES_IN_PLAYER/$leagueName")
-      .set(leagueName);
+  _addPlayerToLeague(
+      database, new Player(uid: userUid, name: displayName), leagueName);
 }
 
 _createCreateLeague(FirebaseDatabase database) {
@@ -269,7 +318,7 @@ _createOnLogInSuccess(FirebaseDatabase database) {
         .child("$PLAYERS/$userId/$LEAGUES_IN_PLAYER")
         .onChildAdded
         .listen((event) =>
-            store.dispatch(new LeagueAddedToUser(event.snapshot.key)));
+        store.dispatch(new LeagueAddedToUser(event.snapshot.key)));
 
     next(action);
   };

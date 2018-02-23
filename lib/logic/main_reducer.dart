@@ -31,8 +31,25 @@ ReduxState reduce(ReduxState state, action) {
   }
   newState = newState.copyWith(
     sessionPageState: reduceSessionPageState(state, action),
+    joinLeaguePageState: reduceJoinPageState(state, action),
   );
   return newState;
+}
+
+JoinLeaguePageState reduceJoinPageState(ReduxState state, action) {
+  if (action is OnFindLeagueResultAction) {
+    return new JoinLeaguePageState(
+      chosenLeagueName: action.requestedLeagueName,
+      isLeagueValidated: action.league != null,
+      didPasswordFail: null,
+      league: action.league,
+    );
+  } else if (action is PrepareJoinLeaguePageAction) {
+    return new JoinLeaguePageState();
+  } else if (action is OnJoiningLeagueFailedAction) {
+    return state.joinLeaguePageState.copyWith(didPasswordFail: true);
+  }
+  return state.joinLeaguePageState;
 }
 
 SessionPageState reduceSessionPageState(ReduxState state, action) {

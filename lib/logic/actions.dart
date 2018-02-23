@@ -74,8 +74,9 @@ class CreateLeagueAction {
 
 class AddPlayerToLeague {
   final Player player;
+  final String leagueName;
 
-  AddPlayerToLeague(this.player);
+  AddPlayerToLeague(this.player, this.leagueName);
 }
 
 // ===== SESSION =====
@@ -126,4 +127,30 @@ class SessionSetExpandedAction {
 }
 
 class EndSessionAction {
+}
+
+class FindLeagueToJoinAction {
+  final String leagueName;
+
+  FindLeagueToJoinAction(this.leagueName);
+}
+
+class OnFindLeagueResultAction {
+  final String requestedLeagueName;
+  final League league;
+
+  OnFindLeagueResultAction(this.requestedLeagueName, this.league);
+}
+
+class PrepareJoinLeaguePageAction {
+}
+
+class TryJoiningLeagueAction {
+  final League league;
+  final String password;
+
+  TryJoiningLeagueAction(this.league, this.password);
+}
+
+class OnJoiningLeagueFailedAction {
 }

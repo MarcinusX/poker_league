@@ -34,8 +34,8 @@ class Session {
       "location": location,
       "isFinished": isFinished,
       "playerSessions": new Map.fromIterable(playerSessions.keys,
-          key: (Player key) => key.key,
-          value: (Player key) => playerSessions[key].toJson())
+          key: (player) => player.key,
+          value: (player) => playerSessions[player].toJson())
     };
   }
 
