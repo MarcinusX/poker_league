@@ -8,6 +8,7 @@ import 'package:poker_league/logic/redux_state.dart';
 
 class LoginPageViewModel {
   final Function() loginWithGoogle;
+  final Function() loginWithFacebook;
   final Function() onMovedFromLoginPage;
   final Function() signOut;
   final bool shouldLogIn;
@@ -15,6 +16,7 @@ class LoginPageViewModel {
 
   LoginPageViewModel({
     @required this.loginWithGoogle,
+    @required this.loginWithFacebook,
     @required this.shouldLogIn,
     @required this.onMovedFromLoginPage,
     @required this.shouldSignOut,
@@ -29,7 +31,8 @@ class LoginPage extends StatelessWidget {
       converter: (store) {
         return new LoginPageViewModel(
           signOut: () => store.dispatch(new SignOutAction()),
-          loginWithGoogle: () => store.dispatch(new DoLogIn()),
+          loginWithGoogle: () => store.dispatch(new DoGoogleLogIn()),
+          loginWithFacebook: () => store.dispatch(new DoFacebookLogIn()),
           onMovedFromLoginPage: () =>
               store.dispatch(new OnMovedFromLoginPageAction()),
           shouldLogIn: store.state.shouldLogIn ?? false,
@@ -61,6 +64,13 @@ class LoginPage extends StatelessWidget {
                         viewModel.loginWithGoogle();
                       },
                       child: new Text("Log in with Google"),
+                    ),
+                    new RaisedButton(
+                      color: Colors.blue,
+                      onPressed: () {
+                        viewModel.loginWithFacebook();
+                      },
+                      child: new Text("Log in with Facebook"),
                     ),
                   ],
                 ),

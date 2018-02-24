@@ -26,7 +26,10 @@ class ChangeMainPage {
 
 // ===== USER ======
 
-class DoLogIn {
+class DoGoogleLogIn {
+}
+
+class DoFacebookLogIn {
 }
 
 class OnLoggedInSuccessful {

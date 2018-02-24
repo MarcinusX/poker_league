@@ -1,4 +1,4 @@
-package com.yourcompany.pokerleague;
+package com.mszalek.pokerleague;
 
 import android.os.Bundle;
 

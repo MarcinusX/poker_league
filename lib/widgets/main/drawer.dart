@@ -116,7 +116,6 @@ class MyDrawer extends StatelessWidget {
                 new ListTile(
                   dense: true,
                   onTap: () {
-//                    Navigator.pushReplacementNamed(context, "Login").then((_) => viewModel.logout());
                     viewModel.logout();
                   },
                   leading: new Icon(

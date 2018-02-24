@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
@@ -23,8 +24,11 @@ List<Middleware<ReduxState>> createMiddleware({
   @required FirebaseDatabase database,
   @required GoogleSignIn googleSignIn,
   @required FirebaseAuth firebaseAuth,
+  @required FacebookLogin facebookSignIn,
 }) {
-  final logIn = _createLogIn(googleSignIn, firebaseAuth);
+  final logInWithGoogle = _createLogInWithGoogle(googleSignIn, firebaseAuth);
+  final logInWithFacebook =
+  _createLogInWithFacebook(facebookSignIn, firebaseAuth);
   final onLoginSuccess = _createOnLogInSuccess(database);
   final onInit = _createTryToLoginInBackground(firebaseAuth);
   final createLeague = _createCreateLeague(database);
@@ -41,9 +45,10 @@ List<Middleware<ReduxState>> createMiddleware({
   final findLeagueName = _createFindLeagueName(database);
   final tryJoiningLeague = _createTryJoiningLeague(database);
   final editBuyIn = _createEditBuyIn(database);
-  final logout = _createLogout(googleSignIn, firebaseAuth);
+  final logout = _createLogout(googleSignIn, facebookSignIn, firebaseAuth);
   return combineTypedMiddleware([
-    new MiddlewareBinding<ReduxState, DoLogIn>(logIn),
+    new MiddlewareBinding<ReduxState, DoGoogleLogIn>(logInWithGoogle),
+    new MiddlewareBinding<ReduxState, DoFacebookLogIn>(logInWithFacebook),
     new MiddlewareBinding<ReduxState, OnLoggedInSuccessful>(onLoginSuccess),
     new MiddlewareBinding<ReduxState, InitAction>(onInit),
     new MiddlewareBinding<ReduxState, CreateLeagueAction>(createLeague),
@@ -67,11 +72,13 @@ List<Middleware<ReduxState>> createMiddleware({
   ]);
 }
 
-_createLogout(GoogleSignIn googleSignIn, FirebaseAuth firebaseAuth) {
+_createLogout(GoogleSignIn googleSignIn, FacebookLogin facebookSignIn,
+    FirebaseAuth firebaseAuth) {
   return (Store<ReduxState> store, SignOutAction action, NextDispatcher next) {
     Future.wait([
       googleSignIn.signOut(),
       firebaseAuth.signOut(),
+      facebookSignIn.logOut(),
     ]).then((_) =>
     new Future.delayed(new Duration(milliseconds: 300),
             () => store.dispatch(new OnSignedOutAction())));
@@ -357,16 +364,62 @@ _createOnLogInSuccess(FirebaseDatabase database) {
   };
 }
 
-_createLogIn(GoogleSignIn googleSignIn, FirebaseAuth firebaseAuth) {
-  return (Store<ReduxState> store, DoLogIn action, NextDispatcher next) {
-    _logIn(googleSignIn, firebaseAuth).then((firebaseUser) =>
+_createLogInWithGoogle(GoogleSignIn googleSignIn, FirebaseAuth firebaseAuth) {
+  return (Store<ReduxState> store, DoGoogleLogIn action, NextDispatcher next) {
+    _logInWithGoogle(googleSignIn, firebaseAuth).then((firebaseUser) =>
         store.dispatch(new OnLoggedInSuccessful(firebaseUser)));
 
     next(action);
   };
 }
 
-Future<FirebaseUser> _logIn(GoogleSignIn googleSignIn,
+_createLogInWithFacebook(FacebookLogin facebookSignIn,
+    FirebaseAuth firebaseAuth) {
+  return (Store<ReduxState> store, DoFacebookLogIn action,
+      NextDispatcher next) {
+    _logInWithFacebook(facebookSignIn, firebaseAuth).then((firebaseUser) {
+      if (firebaseUser != null) {
+        store.dispatch(new OnLoggedInSuccessful(firebaseUser));
+      }
+    });
+    next(action);
+  };
+}
+
+Future<FirebaseUser> _logInWithFacebook(FacebookLogin facebookSignIn,
+    FirebaseAuth firebaseAuth) async {
+  final FacebookLoginResult result =
+  await facebookSignIn.logInWithReadPermissions(['email']);
+
+  switch (result.status) {
+    case FacebookLoginStatus.loggedIn:
+      final FacebookAccessToken accessToken = result.accessToken;
+      print('''
+         Logged in!
+         
+         Token: ${accessToken.token}
+         User id: ${accessToken.userId}
+         Expires: ${accessToken.expires}
+         Permissions: ${accessToken.permissions}
+         Declined permissions: ${accessToken.declinedPermissions}
+         ''');
+      return await firebaseAuth.signInWithFacebook(
+          accessToken: accessToken.token);
+  //await firebaseAuth.updateProfile(new UserUpdateInfo());
+  //await facebookSignIn.
+    case FacebookLoginStatus.cancelledByUser:
+      print('Login cancelled by the user.');
+      return null;
+    case FacebookLoginStatus.error:
+      print('Something went wrong with the login process.\n'
+          'Here\'s the error Facebook gave us: ${result.errorMessage}');
+      return null;
+    default:
+      return null;
+  }
+}
+
+Future<FirebaseUser> _logInWithGoogle(GoogleSignIn googleSignIn,
     FirebaseAuth firebaseAuth) async {
   GoogleSignInAccount currentUser = googleSignIn.currentUser;
   if (currentUser == null) {

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--I'm not sure why it's needed-->
+    <string name="app_name">Poker League</string>
+    <!--Facebook config-->
+    <string name="facebook_app_id">906537452839416</string>
+    <string name="fb_login_protocol_scheme">fb906537452839416</string>
+</resources>
