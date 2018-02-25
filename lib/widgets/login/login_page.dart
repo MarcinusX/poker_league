@@ -5,6 +5,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:meta/meta.dart';
 import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
+import 'package:poker_league/widgets/login/email_password_widget.dart';
 
 class LoginPageViewModel {
   final Function() loginWithGoogle;
@@ -89,56 +90,8 @@ class LoginPage extends StatelessWidget {
           ),
         ),
         new Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: new TextField(
-            decoration: new InputDecoration(
-              icon: new Icon(Icons.mail),
-              hintText: "Email",
-              border: new OutlineInputBorder(),
-            ),
-          ),
-        ),
-        new TextField(
-          decoration: new InputDecoration(
-            icon: new Icon(Icons.lock),
-            hintText: "Password",
-            border: new OutlineInputBorder(),
-          ),
-        ),
-        new Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: new RaisedButton(
-            onPressed: () {},
-            child: new Text(
-              "REGISTER",
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .subhead
-                  .copyWith(color: Colors.white),
-            ),
-            color: Colors.purple,
-          ),
-        ),
-        new Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: new Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              new Text("Already have an account?"),
-              new Padding(
-                padding: const EdgeInsets.only(left: 4.0),
-                child: new Text(
-                  "Log in",
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .subhead
-                      .copyWith(color: Colors.purple),
-                ),
-              ),
-            ],
-          ),
+          padding: const EdgeInsets.all(16.0),
+          child: new EmailPasswordWidget(),
         ),
         new Row(
           children: <Widget>[
