@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:meta/meta.dart';
 import 'package:poker_league/logic/redux_state.dart';
 
 class EmailPasswordWidget extends StatefulWidget {
@@ -11,36 +12,45 @@ class EmailPasswordWidget extends StatefulWidget {
   }
 }
 
+@immutable
+class ViewModel {
+  final Function(String, String) onLogInClick;
+
+  ViewModel({this.onLogInClick});
+}
+
 class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     with TickerProviderStateMixin {
   AnimationController _controller;
-  TextEditingController _emailController;
-  TextEditingController _passwordController;
+  String login;
+  String password;
+
+  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  final GlobalKey<FormFieldState<String>> _passwordFieldKey = new GlobalKey<
+      FormFieldState<String>>();
 
   @override
   void initState() {
     super.initState();
     _controller = new AnimationController(
         vsync: this, duration: const Duration(milliseconds: 500));
-    _emailController = new TextEditingController();
-    _passwordController = new TextEditingController();
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return new StoreConnector<ReduxState, String>(
+    return new StoreConnector<ReduxState, ViewModel>(
       converter: (store) {
-        return "hehe";
+        return new ViewModel(
+          onLogInClick: null,
+        );
       },
-      builder: (BuildContext context, String vm) {
+      builder: (BuildContext context, ViewModel vm) {
         return new AnimatedBuilder(
             animation: _controller,
             builder: (BuildContext context, Widget child) {
@@ -60,7 +70,7 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     );
   }
 
-  Widget _buildFront(BuildContext context, String vm) {
+  Widget _buildFront(BuildContext context, ViewModel vm) {
     return new Column(
       children: <Widget>[
         _buildInputs(context, vm),
@@ -89,7 +99,7 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     );
   }
 
-  Widget _buildBack(BuildContext context, String vm) {
+  Widget _buildBack(BuildContext context, ViewModel vm) {
     return new Column(
       children: <Widget>[
         _buildInputs(context, vm),
@@ -120,11 +130,11 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     );
   }
 
-  Widget _buildLogInButton(BuildContext context, String vm) {
+  Widget _buildLogInButton(BuildContext context, ViewModel vm) {
     return new Padding(
       padding: const EdgeInsets.all(8.0),
       child: new RaisedButton(
-        onPressed: () {},
+        onPressed: () => _handleSubmitted(vm),
         child: new Text(
           "LOG IN",
           style:
@@ -135,7 +145,7 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     );
   }
 
-  Widget _buildRegisterButton(BuildContext context, String vm) {
+  Widget _buildRegisterButton(BuildContext context, ViewModel vm) {
     return new Padding(
       padding: const EdgeInsets.all(8.0),
       child: new RaisedButton(
@@ -150,29 +160,52 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     );
   }
 
-  Widget _buildInputs(BuildContext context, String vm) {
-    return new Column(
-      children: <Widget>[
-        new Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: new TextField(
-            controller: _emailController,
+  Widget _buildInputs(BuildContext context, ViewModel vm) {
+    return new Form(
+      key: _formKey,
+      child: new Column(
+        children: <Widget>[
+          new Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: new TextFormField(
+              decoration: new InputDecoration(
+                icon: new Icon(Icons.mail),
+                hintText: "Email",
+                border: new OutlineInputBorder(),
+              ),
+              validator: _validateEmail,
+            ),
+          ),
+          new TextFormField(
             decoration: new InputDecoration(
-              icon: new Icon(Icons.mail),
-              hintText: "Email",
+              icon: new Icon(Icons.lock),
+              hintText: "Password",
               border: new OutlineInputBorder(),
             ),
           ),
-        ),
-        new TextField(
-          controller: _passwordController,
-          decoration: new InputDecoration(
-            icon: new Icon(Icons.lock),
-            hintText: "Password",
-            border: new OutlineInputBorder(),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
+  }
+
+  void _handleSubmitted(ViewModel vm) {
+    final FormState form = _formKey.currentState;
+    if (!form.validate()) {
+//      _autovalidate = true; // Start validating on every change.
+//      showInSnackBar('Please fix the errors in red before submitting.');
+    } else {
+      form.save();
+//      showInSnackBar('${person.name}\'s phone number is ${person.phoneNumber}');
+      //TODO: performRequest
+    }
+  }
+
+
+  String _validateEmail(String email) {
+    if (email.isEmpty) {
+      return "Email is required";
+    } else {
+      return null;
+    }
   }
 }
