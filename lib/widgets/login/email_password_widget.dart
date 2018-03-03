@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:meta/meta.dart';
 import 'package:poker_league/logic/redux_state.dart';
+import 'package:validator/validator.dart' as validator;
 
 class EmailPasswordWidget extends StatefulWidget {
   @override
@@ -22,12 +23,15 @@ class ViewModel {
 class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     with TickerProviderStateMixin {
   AnimationController _controller;
-  String login;
-  String password;
+  String _login;
+  String _password;
+  bool _autovalidate = false;
 
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  final GlobalKey<FormFieldState<String>> _passwordFieldKey = new GlobalKey<
-      FormFieldState<String>>();
+  final GlobalKey<FormFieldState<String>> _passwordFieldKey =
+  new GlobalKey<FormFieldState<String>>();
+
+  bool get isLoginPage => _controller.isCompleted;
 
   @override
   void initState() {
@@ -58,19 +62,19 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
                 transform: new Matrix4.rotationY(_controller.value * math.PI),
                 alignment: Alignment.center,
                 child: _controller.value < 0.5
-                    ? _buildFront(context, vm)
+                    ? buildRegisterPage(context, vm)
                     : new Transform(
                         transform:
                             new Matrix4.rotationY(_controller.value * math.PI),
                         alignment: Alignment.center,
-                        child: _buildBack(context, vm)),
+                    child: _buildLoginPage(context, vm)),
               );
             });
       },
     );
   }
 
-  Widget _buildFront(BuildContext context, ViewModel vm) {
+  Widget buildRegisterPage(BuildContext context, ViewModel vm) {
     return new Column(
       children: <Widget>[
         _buildInputs(context, vm),
@@ -82,7 +86,7 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
             children: <Widget>[
               new Text("Already have an account?"),
               new FlatButton(
-                onPressed: () => _controller.forward(),
+                onPressed: () => _reverse(),
                 child: new Text(
                   "Log in",
                   style: Theme
@@ -99,7 +103,7 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     );
   }
 
-  Widget _buildBack(BuildContext context, ViewModel vm) {
+  Widget _buildLoginPage(BuildContext context, ViewModel vm) {
     return new Column(
       children: <Widget>[
         _buildInputs(context, vm),
@@ -111,9 +115,7 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
             children: <Widget>[
               new Text("Don't have an account?"),
               new FlatButton(
-                onPressed: () {
-                  _controller.reverse();
-                },
+                onPressed: () => _reverse(),
                 child: new Text(
                   "Register",
                   style: Theme
@@ -134,7 +136,7 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     return new Padding(
       padding: const EdgeInsets.all(8.0),
       child: new RaisedButton(
-        onPressed: () => _handleSubmitted(vm),
+        onPressed: () => _handleLoginSubmitted(vm),
         child: new Text(
           "LOG IN",
           style:
@@ -149,7 +151,7 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     return new Padding(
       padding: const EdgeInsets.all(8.0),
       child: new RaisedButton(
-        onPressed: () {},
+        onPressed: () => _handleRegisterSubmitted(vm),
         child: new Text(
           "REGISTER",
           style:
@@ -163,6 +165,7 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
   Widget _buildInputs(BuildContext context, ViewModel vm) {
     return new Form(
       key: _formKey,
+      autovalidate: _autovalidate,
       child: new Column(
         children: <Widget>[
           new Padding(
@@ -173,6 +176,7 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
                 hintText: "Email",
                 border: new OutlineInputBorder(),
               ),
+              keyboardType: TextInputType.emailAddress,
               validator: _validateEmail,
             ),
           ),
@@ -182,16 +186,17 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
               hintText: "Password",
               border: new OutlineInputBorder(),
             ),
+            validator: _validatePassword,
           ),
         ],
       ),
     );
   }
 
-  void _handleSubmitted(ViewModel vm) {
+  void _handleRegisterSubmitted(ViewModel vm) {
     final FormState form = _formKey.currentState;
     if (!form.validate()) {
-//      _autovalidate = true; // Start validating on every change.
+      setState(() => _autovalidate = true); // Start validating on every change.
 //      showInSnackBar('Please fix the errors in red before submitting.');
     } else {
       form.save();
@@ -200,12 +205,49 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     }
   }
 
+  void _handleLoginSubmitted(ViewModel vm) {
+    final FormState form = _formKey.currentState;
+    if (!form.validate()) {
+      setState(() => _autovalidate = true); // Start validating on every change.
+//      showInSnackBar('Please fix the errors in red before submitting.');
+    } else {
+      form.save();
+//      showInSnackBar('${person.name}\'s phone number is ${person.phoneNumber}');
+      //TODO: performRequest
+    }
+  }
 
   String _validateEmail(String email) {
     if (email.isEmpty) {
       return "Email is required";
+    } else if (!validator.isEmail(email)) {
+      return "Invalid format";
     } else {
       return null;
     }
+  }
+
+  String _validatePassword(String password) {
+    if (password
+        .trim()
+        .isEmpty) {
+      return "Password is required";
+    } else if (!isLoginPage && password
+        .trim()
+        .length < 6) {
+      return "Password must contain 6 characters";
+    } else {
+      return null;
+    }
+  }
+
+  _reverse() {
+    if (isLoginPage) {
+      _controller.reverse();
+    } else {
+      _controller.forward();
+    }
+    _formKey.currentState.reset();
+    _autovalidate = false;
   }
 }
