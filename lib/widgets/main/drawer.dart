@@ -80,14 +80,17 @@ class MyDrawer extends StatelessWidget {
                           padding: new EdgeInsets.only(bottom: 8.0),
                           child: new CircleAvatar(
                             radius: 32.0,
-                            backgroundImage: new NetworkImage(
-                                viewModel.firebaseUser.photoUrl),
+                            backgroundImage:
+                            viewModel.firebaseUser.photoUrl != null
+                                ? new NetworkImage(
+                                viewModel.firebaseUser.photoUrl)
+                                : new AssetImage("assets/icon_user.png"),
                           ),
                         ),
                         new Padding(
                             padding: new EdgeInsets.symmetric(vertical: 8.0),
                             child: new Text(
-                              viewModel.firebaseUser.displayName,
+                              viewModel.firebaseUser.displayName ?? "",
                               style: Theme
                                   .of(context)
                                   .textTheme

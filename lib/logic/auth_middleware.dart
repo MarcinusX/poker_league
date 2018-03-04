@@ -13,9 +13,11 @@ List<Middleware<ReduxState>> createAuthMiddleware({
   @required FirebaseAuth firebaseAuth,
   @required FacebookLogin facebookSignIn,
 }) {
+  final logInWithEmail = _createLogInWithEmail(firebaseAuth);
+  final registerWithEmail = _createRegisterWithEmail(firebaseAuth);
   final logInWithGoogle = _createLogInWithGoogle(googleSignIn, firebaseAuth);
   final logInWithFacebook =
-      _createLogInWithFacebook(facebookSignIn, firebaseAuth);
+  _createLogInWithFacebook(facebookSignIn, firebaseAuth);
   final onInit = _createTryToLoginInBackground(firebaseAuth);
   final logout = _createLogout(googleSignIn, facebookSignIn, firebaseAuth);
   return combineTypedMiddleware([
@@ -23,7 +25,44 @@ List<Middleware<ReduxState>> createAuthMiddleware({
     new MiddlewareBinding<ReduxState, DoFacebookLogIn>(logInWithFacebook),
     new MiddlewareBinding<ReduxState, InitAction>(onInit),
     new MiddlewareBinding<ReduxState, SignOutAction>(logout),
+    new MiddlewareBinding<ReduxState, RegisterWithEmailAction>(
+        registerWithEmail),
   ]);
+}
+
+_createRegisterWithEmail(FirebaseAuth firebaseAuth) {
+  return (Store<ReduxState> store, RegisterWithEmailAction action,
+      NextDispatcher next) {
+    _registerWithEmail(store, firebaseAuth, action.email, action.password);
+  };
+}
+
+_registerWithEmail(Store<ReduxState> store, FirebaseAuth auth, String email,
+    String password) async {
+  FirebaseUser user = await auth.createUserWithEmailAndPassword(
+      email: email, password: password);
+  if (user != null) {
+    await auth.updateProfile(new UserUpdateInfo()
+      ..displayName = email.substring(0, email.indexOf('@')));
+    user = await auth.currentUser();
+    if (user != null) {
+      store.dispatch(new OnLoggedInSuccessful(user));
+    }
+  }
+}
+
+_createLogInWithEmail(FirebaseAuth firebaseAuth) {
+  return (Store<ReduxState> store, RegisterWithEmailAction action,
+      NextDispatcher next) {
+//    firebaseAuth
+//        .createUserWithEmailAndPassword(
+//        email: action.email, password: action.password)
+//        .then((firebaseUser) {
+//      if (firebaseUser != null) {
+//        store.dispatch(new OnLoggedInSuccessful(firebaseUser));
+//      }
+//    });
+  };
 }
 
 _createLogout(GoogleSignIn googleSignIn, FacebookLogin facebookSignIn,

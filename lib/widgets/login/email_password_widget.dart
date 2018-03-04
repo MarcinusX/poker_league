@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:meta/meta.dart';
+import 'package:poker_league/logic/actions.dart';
 import 'package:poker_league/logic/redux_state.dart';
 import 'package:validator/validator.dart' as validator;
 
@@ -15,20 +16,24 @@ class EmailPasswordWidget extends StatefulWidget {
 
 @immutable
 class ViewModel {
-  final Function(String, String) onLogInClick;
+  final Function(String, String) logIn;
+  final Function(String, String) register;
 
-  ViewModel({this.onLogInClick});
+  ViewModel({
+    @required this.logIn,
+    @required this.register,
+  });
 }
 
 class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     with TickerProviderStateMixin {
   AnimationController _controller;
-  String _login;
-  String _password;
   bool _autovalidate = false;
 
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   final GlobalKey<FormFieldState<String>> _passwordFieldKey =
+  new GlobalKey<FormFieldState<String>>();
+  final GlobalKey<FormFieldState<String>> _emailFieldKey =
   new GlobalKey<FormFieldState<String>>();
 
   bool get isLoginPage => _controller.isCompleted;
@@ -51,7 +56,9 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     return new StoreConnector<ReduxState, ViewModel>(
       converter: (store) {
         return new ViewModel(
-          onLogInClick: null,
+          logIn: null,
+          register: (email, pass) =>
+              store.dispatch(new RegisterWithEmailAction(email, pass)),
         );
       },
       builder: (BuildContext context, ViewModel vm) {
@@ -171,6 +178,7 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
           new Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: new TextFormField(
+              key: _emailFieldKey,
               decoration: new InputDecoration(
                 icon: new Icon(Icons.mail),
                 hintText: "Email",
@@ -181,6 +189,7 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
             ),
           ),
           new TextFormField(
+            key: _passwordFieldKey,
             decoration: new InputDecoration(
               icon: new Icon(Icons.lock),
               hintText: "Password",
@@ -197,11 +206,12 @@ class EmailPasswordWidgetState extends State<EmailPasswordWidget>
     final FormState form = _formKey.currentState;
     if (!form.validate()) {
       setState(() => _autovalidate = true); // Start validating on every change.
-//      showInSnackBar('Please fix the errors in red before submitting.');
     } else {
       form.save();
-//      showInSnackBar('${person.name}\'s phone number is ${person.phoneNumber}');
-      //TODO: performRequest
+      String password = _passwordFieldKey.currentState.value;
+      String email = _emailFieldKey.currentState.value;
+      vm.register(email, password);
+      //TODO: show info
     }
   }
 

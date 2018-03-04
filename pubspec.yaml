@@ -16,6 +16,7 @@ dependencies:
   quiver: "^0.28.0"
   flutter_facebook_login: "^1.0.3"
   validator: ">=0.0.4 <0.1.0"
+  mockito: "^2.2.0"
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -45,6 +46,7 @@ flutter:
     - assets/login_background.jpg
     - assets/sign-in-facebook.png
     - assets/sign-in-google.png
+    - assets/icon_user.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.

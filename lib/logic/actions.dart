@@ -26,6 +26,22 @@ class ChangeMainPage {
 
 // ===== USER ======
 
+class RegisterWithEmailAction {
+  final String email;
+  final String password;
+
+  RegisterWithEmailAction(this.email, this.password);
+}
+
+class LogInWithEmailAction {
+  final String email;
+  final String password;
+
+  LogInWithEmailAction(this.email, this.password);
+}
+
+class OnRegisterSuccessful {}
+
 class DoGoogleLogIn {
 }
 
