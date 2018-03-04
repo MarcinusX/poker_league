@@ -11,6 +11,7 @@ import 'package:poker_league/widgets/login/login_page.dart';
 import 'package:poker_league/widgets/main/main_page.dart';
 import 'package:redux/redux.dart';
 
+import 'logic/auth_middleware.dart' as authMiddleware;
 import 'logic/middleware.dart' as middleware;
 
 void main() {
@@ -18,15 +19,15 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  final Store store = new Store<ReduxState>(
-    reduce,
-    initialState: new ReduxState(),
-    middleware: middleware.createMiddleware(
-        database: FirebaseDatabase.instance,
-        googleSignIn: new GoogleSignIn(),
-        facebookSignIn: new FacebookLogin(),
-        firebaseAuth: FirebaseAuth.instance),
-  );
+  final Store store = new Store<ReduxState>(reduce,
+      initialState: new ReduxState(),
+      middleware:
+      middleware.createMiddleware(database: FirebaseDatabase.instance)
+        ..addAll(authMiddleware.createAuthMiddleware(
+          googleSignIn: new GoogleSignIn(),
+          facebookSignIn: new FacebookLogin(),
+          firebaseAuth: FirebaseAuth.instance,
+        )));
 
   @override
   Widget build(BuildContext context) {
