@@ -17,22 +17,6 @@ class FirebaseUserMock extends Mock implements FirebaseUser {}
 ReduxState reducerMock(ReduxState state, action) => state;
 
 void main() {
-  test('Register with email aciton calls firebaseAuth method', () {
-    //given
-    FirebaseAuth auth = _initRegisterAuth();
-    Store store = new Store<ReduxState>(reducerMock,
-        middleware: createAuthMiddleware(
-            googleSignIn: null, firebaseAuth: auth, facebookSignIn: null));
-    //when
-    store.dispatch(new RegisterWithEmailAction("email@sss.com", "password"));
-    //then
-    new Future.delayed(const Duration(milliseconds: 1), () {
-      verify(auth.createUserWithEmailAndPassword(
-              email: "email@sss.com", password: "password"))
-          .called(1);
-    });
-  });
-
   test('Successful register with email aciton calls OnLoginSuccess', () {
     //given
     bool onLoggedInSuccessfulCalled = false;
@@ -45,13 +29,38 @@ void main() {
     Store store = _initRegisterStore(reducer);
 
     //when
-    store.dispatch(new RegisterWithEmailAction("email@sss.com", "password"));
+    Future future = new Future(() =>
+        store
+            .dispatch(
+            new RegisterWithEmailAction("email@sss.com", "password")));
 
     //then
-    new Future.delayed(const Duration(milliseconds: 1), () {
+    future.then((_) =>
+        expectAsync0(() {
       expect(onLoggedInSuccessfulCalled, true);
+        }));
+  });
+  test('Register with email aciton calls firebaseAuth method', () {
+    //given
+    FirebaseAuth auth = _initRegisterAuth();
+    Store store = new Store<ReduxState>(reducerMock,
+        middleware: createAuthMiddleware(
+            googleSignIn: null, firebaseAuth: auth, facebookSignIn: null));
+    //when
+    Future future = new Future(() =>
+        store
+            .dispatch(
+            new RegisterWithEmailAction("email@sss.com", "password")));
+    //then
+    future.then((_) {
+      expectAsync0(() {
+        verify(auth.createUserWithEmailAndPassword(
+            email: "email@sss.com", password: "password"))
+            .called(1);
+      });
     });
   });
+
 }
 
 _initRegisterAuth() {

@@ -27,6 +27,7 @@ List<Middleware<ReduxState>> createAuthMiddleware({
     new MiddlewareBinding<ReduxState, SignOutAction>(logout),
     new MiddlewareBinding<ReduxState, RegisterWithEmailAction>(
         registerWithEmail),
+    new MiddlewareBinding<ReduxState, LogInWithEmailAction>(logInWithEmail),
   ]);
 }
 
@@ -52,7 +53,7 @@ _registerWithEmail(Store<ReduxState> store, FirebaseAuth auth, String email,
 }
 
 _createLogInWithEmail(FirebaseAuth firebaseAuth) {
-  return (Store<ReduxState> store, RegisterWithEmailAction action,
+  return (Store<ReduxState> store, LogInWithEmailAction action,
       NextDispatcher next) {
 //    firebaseAuth
 //        .createUserWithEmailAndPassword(
@@ -79,7 +80,7 @@ _createLogout(GoogleSignIn googleSignIn, FacebookLogin facebookSignIn,
 }
 
 _createTryToLoginInBackground(FirebaseAuth firebaseAuth) {
-  return (Store<ReduxState> store, action, NextDispatcher next) {
+  return (Store<ReduxState> store, InitAction action, NextDispatcher next) {
     next(action);
 
     firebaseAuth.currentUser().then((user) {
